@@ -1,0 +1,7 @@
+export const ANIME_SERVICE = Symbol("ANIME_SERVICE");
+
+export const ANIME_PROVIDER = {
+  NINEANIME: "9ANIME",
+  GOGOANIME: "GOGOANIME",
+  ANICRUSH: "ANICRUSH",
+} as const;

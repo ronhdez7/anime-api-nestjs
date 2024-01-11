@@ -1,25 +1,83 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import * as request from "supertest";
+import * as supertest from "supertest";
 import { AppModule } from "../src/app.module";
+import {
+  ANIME_PROVIDER,
+  ANIME_PROVIDER_DETAILS,
+  ANIME_SERVICE,
+} from "src/app.constants";
+import { AnimeProvider } from "src/anime/interfaces/anime.interface";
 
-describe("AppController (e2e)", () => {
-  let app: INestApplication;
+function AppE2ETest(provider: AnimeProvider) {
+  // const animeName = animeService.name.slice(0, animeService.name.search("Service"));
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+  const details = ANIME_PROVIDER_DETAILS[provider];
+  const animeService = details.service;
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  describe(`${animeService.name} (e2e)`, () => {
+    let app: INestApplication;
+    let request: supertest.SuperTest<supertest.Test>;
+
+    // updated during tests
+    let url: string = "/";
+
+    beforeAll(async () => {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+      })
+        .overrideProvider(ANIME_SERVICE)
+        .useClass(animeService)
+        .compile();
+
+      app = moduleFixture.createNestApplication();
+      await app.init();
+
+      request = supertest(app.getHttpServer());
+    });
+
+    it("GET /", async () => {
+      const response = await request.get(url).expect(200);
+      expect(response.body.data.length).toBeGreaterThanOrEqual(5);
+      url = response.body.data[0].link;
+    });
+
+    it("GET /episodes 200", async () => {
+      const GOOD_URL = url;
+      const goodRes = await request
+        .get(`/episodes?url=${GOOD_URL}`)
+        .expect(200);
+      expect(goodRes.body.data.length).toBeGreaterThan(0);
+      url = goodRes.body.data[0].link;
+    });
+
+    it("GET /episodes 404", () => {
+      const BAD_URL = `${url}000000`;
+      request.get(`/episodes?url=${BAD_URL}`).expect(404);
+    });
+
+    it("GET /servers 200", async () => {
+      const GOOD_URL = url;
+      const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
+      expect(goodRes.body.data.length).toBeGreaterThan(0);
+    });
+
+    it("GET /servers 404", () => {
+      const BAD_URL = `${url}000000`;
+      request.get(`/servers?url=${BAD_URL}`).expect(404);
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
   });
+}
 
-  it("GET /", () => {
-    request(app.getHttpServer()).get("/").expect(200);
-  });
-
-  // it("GET /episodes", () => {
-  //   request(app.getHttpServer()).get("/episodes").expect(200);
-  // })
+// run all tests of providers
+const providers: AnimeProvider[] = Object.values(ANIME_PROVIDER);
+providers.forEach((provider) => {
+  AppE2ETest(provider);
 });
+
+// so that jest doesn't complain for not having any tests
+describe.skip("Skip", () => {});

@@ -1,4 +1,6 @@
+import { Type } from "@nestjs/common";
 import { ANIME_PROVIDER } from "src/app.constants";
+import { AnimeService } from "../anime.service";
 
 export type ObjectKeys<T> = keyof T;
 export type ObjectValues<T> = T[keyof T];
@@ -56,4 +58,10 @@ export interface AnimeSourceApiResponse {
   sources: any[];
   tracks: any[];
   htmlGuide: string;
+}
+
+export interface AnimeProviderDetails {
+  type: AnimeProvider;
+  baseUrl: string;
+  service: Type<AnimeService>;
 }

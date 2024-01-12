@@ -1,19 +1,19 @@
 import { Injectable } from "@nestjs/common";
-import { AnimeService } from "../anime/anime.service";
+import { AnimeService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilterOptions,
   EpisodeCard,
   ServerCard,
-} from "../anime/interfaces/anime.interface";
+} from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
-import { ANIME_PROVIDER } from "../app.constants";
+import { ANIME_PROVIDER } from "src/app.constants";
 import { NineAnimeApiResponse } from "./interfaces/9anime.interface";
 import {
   animePageNotFoundError,
   episodePageNotFoundError,
   serverPageNotFoundError,
-} from "../anime/errors/not-found.error";
+} from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()

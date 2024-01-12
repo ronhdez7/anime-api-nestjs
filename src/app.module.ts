@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 import { AnimeModule } from "./anime/anime.module";
-import { NineAnimeService } from "./9anime/9anime.service";
-import { NineAnimeModule } from "./9anime/9anime.module";
-import { GogoanimeModule } from "./gogoanime/gogoanime.module";
-import { AnicrushModule } from "./anicrush/anicrush.module";
+import { NineAnimeService } from "./anime/providers/9anime/9anime.service";
+import { NineAnimeModule } from "./anime/providers/9anime/9anime.module";
+import { GogoanimeModule } from "./anime/providers/gogoanime/gogoanime.module";
+import { AnicrushModule } from "./anime/providers/anicrush/anicrush.module";
 import { AppController } from "./app.controller";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiExceptionFilter } from "./errors/exception.filter";

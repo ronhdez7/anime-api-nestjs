@@ -6,10 +6,8 @@ import { GogoanimeModule } from "./gogoanime/gogoanime.module";
 import { AnicrushModule } from "./anicrush/anicrush.module";
 import { AppController } from "./app.controller";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
-import {
-  ApiGeneralExceptionFilter,
-  ApiExceptionFilter,
-} from "./errors/exception.filter";
+import { ApiExceptionFilter } from "./errors/exception.filter";
+import { ApiGeneralExceptionFilter } from "./errors/general-exception.filter";
 import { SerializeInterceptor } from "./interceptors/serializer.interceptor";
 
 @Module({

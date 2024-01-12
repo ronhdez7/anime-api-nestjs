@@ -10,8 +10,6 @@ import {
 import { AnimeProvider } from "src/anime/interfaces/anime.interface";
 
 function AppE2ETest(provider: AnimeProvider) {
-  // const animeName = animeService.name.slice(0, animeService.name.search("Service"));
-
   const details = ANIME_PROVIDER_DETAILS[provider];
   const animeService = details.service;
 

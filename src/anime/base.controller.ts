@@ -1,6 +1,7 @@
-import { Get, Query, ValidationPipe } from "@nestjs/common";
+import { Get, Query } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
-import { UrlQueryDTO } from "./dto/url-query.dto";
+import { urlQueryParam } from "./validation/url-query.param";
+import { ZodPipe } from "../pipes/zod.pipe";
 
 export class BaseAnimeController {
   constructor(protected readonly animeService: AnimeService) {}
@@ -16,12 +17,12 @@ export class BaseAnimeController {
   }
 
   @Get("episodes")
-  async getEpisodes(@Query(ValidationPipe) { url }: UrlQueryDTO) {
+  async getEpisodes(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
     return await this.animeService.getEpisodes(url);
   }
 
   @Get("servers")
-  async getServers(@Query(ValidationPipe) { url }: UrlQueryDTO) {
+  async getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
     return await this.animeService.getServers(url);
   }
 }

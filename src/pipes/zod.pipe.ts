@@ -17,30 +17,34 @@ export class ZodPipe<T extends ZodType, R = z.infer<T>>
     try {
       value = this.schema.parse(value);
     } catch (err) {
-      if (err instanceof ZodError) {
-        // Create message
-        let message: string = "";
-        if (metadata.type !== "custom") {
-          const paramType = metadata.type !== "param" ? metadata.type : "path";
-          if (metadata.data) {
-            message = `${paramType} param "${metadata.data}" is invalid`;
-          } else {
-            message = `${paramType} is invalid`;
-          }
+      // Create message
+      let message: string = "Error validating request params";
+      if (metadata.type !== "custom") {
+        const paramType = metadata.type !== "param" ? metadata.type : "path";
+        if (metadata.data) {
+          message = `${paramType} param "${metadata.data}" is invalid`;
         } else {
-          if (metadata.data) {
-            message = `Property ${metadata.data} is invalid`;
-          }
+          message = `${paramType} is invalid`;
         }
-        message = message.charAt(0).toUpperCase() + message.slice(1);
+      } else {
+        if (metadata.data) {
+          message = `Property ${metadata.data} is invalid`;
+        }
+      }
+      message = message.charAt(0).toUpperCase() + message.slice(1);
 
-        throw new ApiException(message, HttpStatus.BAD_REQUEST, {
-          cause: err,
-          description: err.issues.reduce((prev, issue) => {
-            return `${prev}${issue.message};`;
-          }, ""),
-        });
-      } else throw err;
+      // Create validation error
+      let description: string;
+      if (err instanceof ZodError) {
+        description = err.issues.reduce((prev, issue) => {
+          return `${prev}${issue.message};`;
+        }, "");
+      } else description = "Unknown validation error";
+
+      throw new ApiException(message, HttpStatus.BAD_REQUEST, {
+        cause: err,
+        description,
+      });
     }
 
     return value;

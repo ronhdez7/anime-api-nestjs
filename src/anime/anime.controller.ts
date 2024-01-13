@@ -1,6 +1,6 @@
 import { Controller, Inject } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
-import { ANIME_SERVICE } from "../app.constants";
+import { ANIME_SERVICE } from "./anime.constants";
 import { BaseAnimeController } from "./base.controller";
 
 @Controller()

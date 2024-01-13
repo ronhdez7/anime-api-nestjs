@@ -7,7 +7,7 @@ import {
   ServerCard,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
-import { ANIME_PROVIDER } from "src/app.constants";
+import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { NineAnimeApiResponse } from "./interfaces/9anime.interface";
 import {
   animePageNotFoundError,

@@ -7,7 +7,7 @@ import {
   ServerCard,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
-import { ANIME_PROVIDER } from "src/app.constants";
+import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { HttpService } from "@nestjs/axios";
 import {
   animePageNotFoundError,
@@ -157,7 +157,8 @@ export class GogoanimeService implements AnimeService {
 
     const servers: ServerCard[] = [];
     $("div.anime_muti_link > ul > li").each((_, el) => {
-      const name = $(el).text().split("Choose this server")[0].trim();
+      const name =
+        $(el).text().split("Choose this server")?.at(0)?.trim() ?? "";
 
       const id = parseInt($(el).find("a").attr("rel") ?? "-1");
 

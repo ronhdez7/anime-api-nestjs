@@ -1,7 +1,7 @@
 import { DynamicModule, Module, Type } from "@nestjs/common";
 import { AnimeController } from "./anime.controller";
 import { AnimeService } from "./anime.service";
-import { ANIME_SERVICE } from "../app.constants";
+import { ANIME_SERVICE } from "./anime.constants";
 import { FetchModule } from "src/config/fetch.module";
 
 @Module({})

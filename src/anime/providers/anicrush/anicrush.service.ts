@@ -14,7 +14,7 @@ import {
   AnicrushEpisodeGuide,
   AnicrushServerGuide,
 } from "./interfaces/anicrush.interface";
-import { ANIME_PROVIDER } from "src/app.constants";
+import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { ApiException } from "src/errors/http.exception";
 import {
   animePageNotFoundError,

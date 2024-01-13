@@ -1,10 +1,10 @@
-import { NineAnimeService } from "./anime/providers/9anime/9anime.service";
-import { AnicrushService } from "./anime/providers/anicrush/anicrush.service";
+import { NineAnimeService } from "./providers/9anime/9anime.service";
+import { AnicrushService } from "./providers/anicrush/anicrush.service";
 import {
   AnimeProvider,
   AnimeProviderDetails,
-} from "./anime/interfaces/anime.interface";
-import { GogoanimeService } from "./anime/providers/gogoanime/gogoanime.service";
+} from "./interfaces/anime.interface";
+import { GogoanimeService } from "./providers/gogoanime/gogoanime.service";
 
 export const ANIME_SERVICE = Symbol("ANIME_SERVICE");
 

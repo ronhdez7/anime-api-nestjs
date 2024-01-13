@@ -6,7 +6,7 @@ import {
   ANIME_PROVIDER,
   ANIME_PROVIDER_DETAILS,
   ANIME_SERVICE,
-} from "src/app.constants";
+} from "src/anime/anime.constants";
 import { AnimeProvider } from "src/anime/interfaces/anime.interface";
 
 function AppE2ETest(provider: AnimeProvider) {
@@ -34,12 +34,14 @@ function AppE2ETest(provider: AnimeProvider) {
       request = supertest(app.getHttpServer());
     });
 
+    // get animes
     it("GET /", async () => {
       const response = await request.get(url).expect(200);
       expect(response.body.data.length).toBeGreaterThanOrEqual(5);
       url = response.body.data[0].link;
     });
 
+    // get episodes
     it("GET /episodes 200", async () => {
       const GOOD_URL = url;
       const goodRes = await request
@@ -49,15 +51,26 @@ function AppE2ETest(provider: AnimeProvider) {
       url = goodRes.body.data[0].link;
     });
 
-    it("GET /episodes 404", () => {
+    it("GET /episodes 400", async () => {
+      const BAD_URL = url.slice(8);
+      request.get(`/episodes?url=${BAD_URL}`).expect(400);
+    });
+
+    it("GET /episodes 404", async () => {
       const BAD_URL = `${url}000000`;
       request.get(`/episodes?url=${BAD_URL}`).expect(404);
     });
 
+    // get servers
     it("GET /servers 200", async () => {
       const GOOD_URL = url;
       const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
       expect(goodRes.body.data.length).toBeGreaterThan(0);
+    });
+
+    it("GET /servers 400", async () => {
+      const BAD_URL = url.slice(8);
+      request.get(`/servers?url=${BAD_URL}`).expect(400);
     });
 
     it("GET /servers 404", () => {

@@ -1,5 +1,5 @@
 import { Type } from "@nestjs/common";
-import { ANIME_PROVIDER } from "src/app.constants";
+import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { AnimeService } from "../anime.service";
 
 export type ObjectKeys<T> = keyof T;

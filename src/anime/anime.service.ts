@@ -11,7 +11,9 @@ export abstract class AnimeService {
   // extract anime
   abstract getAnime(): Promise<AnimeCard[]>;
   abstract scrapeAnime(url: string): Promise<AnimeCard[]>;
-  abstract filterAnime(options: AnimeFilterOptions): Promise<AnimeCard[]>;
+  abstract filterAnime(
+    options: AnimeFilterOptions | string,
+  ): Promise<AnimeCard[]>;
 
   // get episodes
   abstract getEpisodes(animeUrl: string): Promise<EpisodeCard[]>;

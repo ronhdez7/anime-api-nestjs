@@ -81,18 +81,26 @@ export class GogoanimeService implements AnimeService {
     return animes;
   }
 
-  async filterAnime(options: AnimeFilterOptions): Promise<AnimeCard[]> {
-    const keyword = options.keyword ?? "";
-    const type = options.type ?? "";
-    const status = options.status ?? "all";
-    const season = options.season ?? "";
-    const language = options.language ?? "";
-    const sort = options.sort ?? "default";
-    const year = options.year ?? "";
-    const genre = (options.genres ?? []).join(",");
-    const page = options.page ?? "";
+  async filterAnime(
+    options: AnimeFilterOptions | string,
+  ): Promise<AnimeCard[]> {
+    let url = `${this.GOGOANIME_URL}/filter.html?`;
 
-    const url = `${this.GOGOANIME_URL}/filter.html?keyword=${keyword}&type=${type}&status=${status}&season=${season}&language=${language}&sort=${sort}&year=${year}&genre=${genre}&page=${page}`;
+    if (typeof options === "string") {
+      url += options;
+    } else {
+      const keyword = options.keyword ?? "";
+      const type = options.type ?? "";
+      const status = options.status ?? "all";
+      const season = options.season ?? "";
+      const language = options.language ?? "";
+      const sort = options.sort ?? "default";
+      const year = options.year ?? "";
+      const genre = (options.genres ?? []).join(",");
+      const page = options.page ?? "";
+
+      url += `keyword=${keyword}&type=${type}&status=${status}&season=${season}&language=${language}&sort=${sort}&year=${year}&genre=${genre}&page=${page}`;
+    }
 
     return await this.scrapeAnime(url);
   }

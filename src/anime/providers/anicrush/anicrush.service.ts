@@ -54,11 +54,14 @@ export class AnicrushService implements AnimeService {
     } catch (err) {
       throw animePageNotFoundError(err);
     }
-    if (!data.status) throw animePageNotFoundError();
+    if (!data.status) throw animePageNotFoundError(data);
 
     const animes: AnimeCard[] = [];
 
-    for (const anime of data.result) {
+    const items: AnicrushAnimeCard[] =
+      "movies" in data.result ? (data.result.movies as any) : data.result;
+
+    for (const anime of items) {
       let imagePath = "";
       for (let i = anime.poster_path.length - 1; i > -1; i--) {
         const c = anime.poster_path[i];
@@ -95,12 +98,17 @@ export class AnicrushService implements AnimeService {
     return animes;
   }
 
-  // NOT IMPLEMENTED: different from other providers
-  async filterAnime(options: AnimeFilterOptions): Promise<AnimeCard[]> {
-    throw new ApiException(
-      "Endpoint not implemented yet.",
-      HttpStatus.NOT_IMPLEMENTED,
-    );
+  async filterAnime(
+    options: AnimeFilterOptions | string,
+  ): Promise<AnimeCard[]> {
+    let url = `${this.ANICRUSH_API_URL}/shared/v2/movie/list?`;
+    if (typeof options === "string") {
+      url += options;
+    } else {
+      url += "";
+    }
+
+    return this.scrapeAnime(url);
   }
 
   async getEpisodes(animeUrl: string): Promise<EpisodeCard[]> {

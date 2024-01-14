@@ -1,4 +1,4 @@
-import { Get, Query } from "@nestjs/common";
+import { Get, Query, Req } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
 import { urlQueryParam } from "./validation/url-query.param";
 import { ZodPipe } from "../pipes/zod.pipe";
@@ -12,8 +12,12 @@ export class BaseAnimeController {
   }
 
   @Get("filter")
-  async filterAnime() {
-    return await this.animeService.filterAnime({});
+  async filterAnime(@Query() query: Record<string, string>) {
+    // convert query object to string
+    const stringQuery = Object.keys(query).reduce((prev, key) => {
+      return `${prev}${prev ? "&" : ""}${key}=${query[key]}`;
+    }, "");
+    return await this.animeService.filterAnime(stringQuery);
   }
 
   @Get("episodes")

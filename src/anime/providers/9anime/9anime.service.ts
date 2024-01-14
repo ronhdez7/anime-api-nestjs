@@ -82,18 +82,25 @@ export class NineAnimeService implements AnimeService {
     return animes;
   }
 
-  async filterAnime(options: AnimeFilterOptions): Promise<AnimeCard[]> {
-    const keyword = options.keyword ?? "";
-    const type = options.type ?? "";
-    const status = options.status ?? "all";
-    const season = options.season ?? "";
-    const language = options.language ?? "";
-    const sort = options.sort ?? "default";
-    const year = options.year ?? "";
-    const genre = options.genres ?? "";
-    const page = options.page ?? "";
+  async filterAnime(
+    options: AnimeFilterOptions | string,
+  ): Promise<AnimeCard[]> {
+    let url: string = `${this.NINEANIME_URL}/filter?`;
+    if (typeof options === "string") {
+      url += options;
+    } else {
+      const keyword = options.keyword ?? "";
+      const type = options.type ?? "";
+      const status = options.status ?? "all";
+      const season = options.season ?? "";
+      const language = options.language ?? "";
+      const sort = options.sort ?? "default";
+      const year = options.year ?? "";
+      const genre = options.genres ?? "";
+      const page = options.page ?? "";
 
-    const url = `${this.NINEANIME_URL}/filter?keyword=${keyword}&type=${type}&status=${status}&season=${season}&language=${language}&sort=${sort}&year=${year}&genre=${genre}&page=${page}`;
+      url += `keyword=${keyword}&type=${type}&status=${status}&season=${season}&language=${language}&sort=${sort}&year=${year}&genre=${genre}&page=${page}`;
+    }
 
     return await this.scrapeAnime(url);
   }

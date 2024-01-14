@@ -35,10 +35,16 @@ function AppE2ETest(provider: AnimeProvider) {
     });
 
     // get animes
-    it("GET /", async () => {
+    it("GET / 200", async () => {
       const response = await request.get(url).expect(200);
       expect(response.body.data.length).toBeGreaterThanOrEqual(5);
       url = response.body.data[0].link;
+    });
+
+    it("GET /filter 200", async () => {
+      const FILTER_URL = `/filter?genres=1%2C2&page=1&keyword=one-piece`;
+      const response = await request.get(FILTER_URL).expect(200);
+      expect(response.body.data.length).toBeGreaterThanOrEqual(5);
     });
 
     // get episodes

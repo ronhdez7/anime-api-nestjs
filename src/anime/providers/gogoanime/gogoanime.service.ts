@@ -183,6 +183,9 @@ export class GogoanimeService implements AnimeService {
         id,
         link,
         type,
+        source: {
+          link: link ?? "",
+        },
       };
 
       servers.push(card);

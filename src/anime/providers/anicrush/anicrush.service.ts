@@ -7,12 +7,14 @@ import {
   EpisodeCard,
   ObjectKeys,
   ServerCard,
+  SourceCard,
 } from "src/anime/interfaces/anime.interface";
 import {
   AnicrushAnimeCard,
   AnicrushApiResponse,
   AnicrushEpisodeGuide,
   AnicrushServerGuide,
+  AnicrushSourceCard,
 } from "./interfaces/anicrush.interface";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { ApiException } from "src/errors/http.exception";
@@ -20,6 +22,7 @@ import {
   animePageNotFoundError,
   episodePageNotFoundError,
   serverPageNotFoundError,
+  sourceNotFoundError,
 } from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
 
@@ -175,6 +178,12 @@ export class AnicrushService implements AnimeService {
           name: server.streamServer.name,
           link: `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${server.server}&sc=${audioType}`,
           type: audioType,
+          source: await this.getSource(
+            server.server,
+            audioType,
+            animeId,
+            episodeNumber,
+          ),
         };
 
         servers.push(card);
@@ -182,6 +191,33 @@ export class AnicrushService implements AnimeService {
     }
 
     return servers;
+  }
+
+  private async getSource(
+    serverId: number,
+    type: string,
+    animeId: string,
+    episodeNumber: number,
+  ): Promise<SourceCard> {
+    let data: AnicrushApiResponse<AnicrushSourceCard>;
+    try {
+      data = (
+        await this.httpService.axiosRef.get(
+          `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${serverId}&sc=${type}`,
+          { headers: { ...this.DEFAULT_HEADERS } },
+        )
+      ).data;
+    } catch (e) {
+      throw sourceNotFoundError(e);
+    }
+
+    if (!data || !data.status) throw sourceNotFoundError();
+
+    const card = {
+      link: data.result.link,
+    };
+
+    return card;
   }
 
   private getIdFromUrl(url: string) {

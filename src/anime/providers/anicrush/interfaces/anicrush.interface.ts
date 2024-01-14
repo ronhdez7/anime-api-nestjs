@@ -54,3 +54,9 @@ export interface AnicrushServerCard {
   type: number;
 }
 export type AnicrushServerGuide = Record<"sub" | "dub", AnicrushServerCard[]>;
+
+export interface AnicrushSourceCard {
+  type: string;
+  link: string;
+  server: number;
+}

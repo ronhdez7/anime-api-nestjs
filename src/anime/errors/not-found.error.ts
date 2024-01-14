@@ -24,3 +24,11 @@ export function serverPageNotFoundError(cause?: unknown) {
     { cause },
   );
 }
+
+export function sourceNotFoundError(cause?: unknown) {
+  return new ApiException(
+    "Source not found. Check url.",
+    HttpStatus.NOT_FOUND,
+    { cause },
+  );
+}

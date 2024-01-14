@@ -5,10 +5,14 @@ import {
   AnimeFilterOptions,
   EpisodeCard,
   ServerCard,
+  SourceCard,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
-import { NineAnimeApiResponse } from "./interfaces/9anime.interface";
+import {
+  NineAnimeApiResponse,
+  NineAnimeSourceApiResponse,
+} from "./interfaces/9anime.interface";
 import {
   animePageNotFoundError,
   episodePageNotFoundError,
@@ -174,7 +178,9 @@ export class NineAnimeService implements AnimeService {
     const $ = cheerio.load(data.html);
 
     const servers: ServerCard[] = [];
-    $("div.item.server-item").each((_, el) => {
+
+    const elements = $("div.item.server-item");
+    for (const el of elements) {
       const name = $(el).text().trim();
       const id = parseInt($(el).attr("data-server-id") ?? "-1");
       const sourceId = parseInt($(el).attr("data-id") ?? "-1");
@@ -188,12 +194,32 @@ export class NineAnimeService implements AnimeService {
         id,
         link,
         type,
+        source: await this.getSource(id),
       };
 
       servers.push(card);
-    });
+    }
 
     return servers;
+  }
+
+  private async getSource(id: number): Promise<SourceCard> {
+    let data: NineAnimeSourceApiResponse;
+    try {
+      data = (
+        await this.httpService.axiosRef.get(
+          `${this.NINEANIME_URL}/ajax/episode/sources?id=${id}`,
+        )
+      ).data;
+    } catch (e) {
+      throw e;
+    }
+
+    const card = {
+      link: data.link,
+    };
+
+    return card;
   }
 
   private getIdFromUrl(url: string): number {

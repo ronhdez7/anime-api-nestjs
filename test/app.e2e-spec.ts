@@ -72,6 +72,7 @@ function AppE2ETest(provider: AnimeProvider) {
       const GOOD_URL = url;
       const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
       expect(goodRes.body.data.length).toBeGreaterThan(0);
+      expect(goodRes.body.data[0].source.link).toBeTruthy();
     });
 
     it("GET /servers 400", async () => {

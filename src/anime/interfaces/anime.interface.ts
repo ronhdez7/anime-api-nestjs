@@ -45,19 +45,13 @@ export interface ServerCard {
   provider: AnimeProvider;
   name: string;
   id: number;
-  // sourceId: number;
   link: string | null;
   type: string;
+  source?: SourceCard;
 }
 
-export interface AnimeSourceApiResponse {
-  type: string;
+export interface SourceCard {
   link: string;
-  server: number;
-  // not needed
-  sources: any[];
-  tracks: any[];
-  htmlGuide: string;
 }
 
 export interface AnimeProviderDetails {

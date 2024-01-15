@@ -1,6 +1,6 @@
 import { Type } from "@nestjs/common";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
-import { AnimeService } from "../anime.service";
+import { AnimeStreamingService } from "../anime.service";
 
 export type ObjectKeys<T> = keyof T;
 export type ObjectValues<T> = T[keyof T];
@@ -16,7 +16,7 @@ export interface AnimeCard {
     sub: boolean;
     dub: boolean;
   };
-  filmType: AnimeFilmType | null;
+  filmType: string | null;
   link: string | null;
   image: string | null;
   quality: string | null;
@@ -57,5 +57,5 @@ export interface SourceCard {
 export interface AnimeProviderDetails {
   type: AnimeProvider;
   baseUrl: string;
-  service: Type<AnimeService>;
+  service: Type<AnimeStreamingService>;
 }

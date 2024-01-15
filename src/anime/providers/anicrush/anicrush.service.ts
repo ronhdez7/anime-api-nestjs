@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { AnimeService } from "src/anime/anime.service";
+import { AnimeStreamingService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilmType,
@@ -27,7 +27,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
-export class AnicrushService implements AnimeService {
+export class AnicrushService implements AnimeStreamingService {
   readonly ANICRUSH_BASE_URL = "https://anicrush.to";
   readonly ANICRUSH_API_URL = "https://api.anicrush.to";
   readonly BASE_IMAGE_PATH =
@@ -79,7 +79,7 @@ export class AnicrushService implements AnimeService {
 
       const link = `${this.ANICRUSH_BASE_URL}/watch/${anime.slug}.${anime.id}`;
 
-      const filmType = anime.type as AnimeFilmType;
+      const filmType = anime.type;
 
       const card: AnimeCard = {
         provider: ANIME_PROVIDER.ANICRUSH,

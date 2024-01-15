@@ -1,13 +1,14 @@
 import { Controller, Inject } from "@nestjs/common";
-import { AnimeService } from "./anime.service";
-import { ANIME_SERVICE } from "./anime.constants";
+import { AnimeStreamingService } from "./anime.service";
+import { ANIME_STREAMING_SERVICE } from "./anime.constants";
 import { BaseAnimeController } from "./base.controller";
 
 @Controller()
 export class AnimeController extends BaseAnimeController {
   constructor(
-    @Inject(ANIME_SERVICE) protected readonly animeService: AnimeService,
+    @Inject(ANIME_STREAMING_SERVICE)
+    protected readonly streamingService: AnimeStreamingService,
   ) {
-    super(animeService);
+    super(streamingService);
   }
 }

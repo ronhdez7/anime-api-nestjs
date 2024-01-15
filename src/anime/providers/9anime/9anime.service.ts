@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AnimeService } from "src/anime/anime.service";
+import { AnimeStreamingService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilterOptions,
@@ -21,7 +21,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
-export class NineAnimeService implements AnimeService {
+export class NineAnimeService implements AnimeStreamingService {
   readonly NINEANIME_URL = "https://9animetv.to";
 
   constructor(private readonly httpService: HttpService) {}

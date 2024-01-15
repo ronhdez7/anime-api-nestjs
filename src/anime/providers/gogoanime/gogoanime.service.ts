@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AnimeService } from "src/anime/anime.service";
+import { AnimeStreamingService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilterOptions,
@@ -16,7 +16,7 @@ import {
 } from "src/anime/errors/not-found.error";
 
 @Injectable()
-export class GogoanimeService implements AnimeService {
+export class GogoanimeService implements AnimeStreamingService {
   readonly GOGOANIME_URL = "https://anitaku.to";
   readonly GOGOANIME_EPISODES_URL =
     "https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";

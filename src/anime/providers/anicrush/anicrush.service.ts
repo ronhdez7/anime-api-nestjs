@@ -5,6 +5,7 @@ import {
   AnimeFilterOptions,
   EpisodeCard,
   ObjectKeys,
+  PlayerCard,
   ServerCard,
   SourceCard,
 } from "src/anime/interfaces/anime.interface";
@@ -23,6 +24,7 @@ import {
   sourceNotFoundError,
 } from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
+import { getVideoSource } from "../shared/get-video-source";
 
 @Injectable()
 export class AnicrushService implements AnimeService {
@@ -176,7 +178,7 @@ export class AnicrushService implements AnimeService {
           name: server.streamServer.name,
           link: `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${server.server}&sc=${audioType}`,
           type: audioType,
-          source: await this.getSource(
+          player: await this.getPlayer(
             server.server,
             audioType,
             animeId,
@@ -191,12 +193,16 @@ export class AnicrushService implements AnimeService {
     return servers;
   }
 
-  private async getSource(
+  async getSources(playerUrl: string): Promise<SourceCard> {
+    return await getVideoSource(this.httpService, playerUrl);
+  }
+
+  private async getPlayer(
     serverId: number,
     type: string,
     animeId: string,
     episodeNumber: number,
-  ): Promise<SourceCard> {
+  ): Promise<PlayerCard> {
     let data: AnicrushApiResponse<AnicrushSourceCard>;
     try {
       data = (

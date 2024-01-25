@@ -47,10 +47,10 @@ export interface ServerCard {
   id: number;
   link: string | null;
   type: string;
-  source?: SourceCard;
+  player?: PlayerCard;
 }
 
-export interface SourceCard {
+export interface PlayerCard {
   link: string;
 }
 
@@ -58,4 +58,8 @@ export interface AnimeProviderDetails {
   type: AnimeProvider;
   baseUrl: string;
   service: Type<AnimeService>;
+}
+
+export interface SourceCard {
+  url: string;
 }

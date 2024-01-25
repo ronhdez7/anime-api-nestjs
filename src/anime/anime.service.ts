@@ -4,6 +4,7 @@ import {
   AnimeFilterOptions,
   EpisodeCard,
   ServerCard,
+  SourceCard,
 } from "./interfaces/anime.interface";
 
 @Injectable()
@@ -20,4 +21,7 @@ export abstract class AnimeService {
 
   // get servers
   abstract getServers(episodeUrl: string): Promise<ServerCard[]>;
+
+  // get sources
+  abstract getSources(playerUrl: string): Promise<SourceCard>;
 }

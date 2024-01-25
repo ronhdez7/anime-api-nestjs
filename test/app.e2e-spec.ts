@@ -72,7 +72,9 @@ function AppE2ETest(provider: AnimeProvider) {
       const GOOD_URL = url;
       const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
       expect(goodRes.body.data.length).toBeGreaterThan(0);
-      expect(goodRes.body.data[0].source.link).toBeTruthy();
+      expect(goodRes.body.data[0].player.link).toBeTruthy();
+
+      url = goodRes.body.data[0].player.link;
     });
 
     it("GET /servers 400", async () => {
@@ -83,6 +85,12 @@ function AppE2ETest(provider: AnimeProvider) {
     it("GET /servers 404", () => {
       const BAD_URL = `${url}000000`;
       request.get(`/servers?url=${BAD_URL}`).expect(404);
+    });
+
+    it("GET /sources 200", async () => {
+      const data = (await request.get(`/sources?url=${url}`).expect(200)).body
+        .data;
+      expect(typeof data.url).toEqual("string");
     });
 
     afterAll(async () => {

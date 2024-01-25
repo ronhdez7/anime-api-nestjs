@@ -7,7 +7,7 @@ import {
 } from "./interfaces/anime.interface";
 
 @Injectable()
-export abstract class AnimeStreamingService {
+export abstract class AnimeService {
   // extract anime
   abstract getAnime(): Promise<AnimeCard[]>;
   abstract scrapeAnime(url: string): Promise<AnimeCard[]>;

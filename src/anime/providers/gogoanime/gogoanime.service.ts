@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AnimeStreamingService } from "src/anime/anime.service";
+import { AnimeService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilterOptions,
@@ -16,7 +16,7 @@ import {
 } from "src/anime/errors/not-found.error";
 
 @Injectable()
-export class GogoanimeService implements AnimeStreamingService {
+export class GogoanimeService implements AnimeService {
   readonly GOGOANIME_URL = "https://anitaku.to";
   readonly GOGOANIME_EPISODES_URL =
     "https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
@@ -49,7 +49,7 @@ export class GogoanimeService implements AnimeStreamingService {
 
       const sub = $(el).find("div.img div.type.ic-SUB").length !== 0;
       const dub = $(el).find("div.img div.type.ic-DUB").length !== 0;
-      const raw = $(el).find("div.img div.type.ic-RAW").length !== 0;
+      // const raw = $(el).find("div.img div.type.ic-RAW").length !== 0;
 
       let image = $(el).find("div.img img").attr("src")?.trim() ?? null;
       if (image?.startsWith("/")) {
@@ -128,7 +128,7 @@ export class GogoanimeService implements AnimeStreamingService {
     const episodes: EpisodeCard[] = [];
     $("li").each((_, el) => {
       const name = $(el).find("div.name").text();
-      const sub = $(el).find("div.cate").text().trim() === "SUB";
+      // const sub = $(el).find("div.cate").text().trim() === "SUB";
       const number = parseInt(name.slice(name.search(/(?<= )\d+$/))) ?? -1;
 
       let link = $(el).find("a").attr("href")?.trim() ?? "";

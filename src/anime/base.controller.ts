@@ -1,14 +1,14 @@
-import { Get, Query, Req } from "@nestjs/common";
-import { AnimeStreamingService } from "./anime.service";
+import { Get, Query } from "@nestjs/common";
+import { AnimeService } from "./anime.service";
 import { urlQueryParam } from "./validation/url-query.param";
 import { ZodPipe } from "../pipes/zod.pipe";
 
 export class BaseAnimeController {
-  constructor(protected readonly streamingService: AnimeStreamingService) {}
+  constructor(protected readonly animeService: AnimeService) {}
 
   @Get()
   async getRecommended() {
-    return await this.streamingService.getAnime();
+    return await this.animeService.getAnime();
   }
 
   @Get("filter")
@@ -17,16 +17,21 @@ export class BaseAnimeController {
     const stringQuery = Object.keys(query).reduce((prev, key) => {
       return `${prev}${prev ? "&" : ""}${key}=${query[key]}`;
     }, "");
-    return await this.streamingService.filterAnime(stringQuery);
+    return await this.animeService.filterAnime(stringQuery);
   }
 
   @Get("episodes")
   async getEpisodes(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.streamingService.getEpisodes(url);
+    return await this.animeService.getEpisodes(url);
   }
 
   @Get("servers")
   async getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.streamingService.getServers(url);
+    return await this.animeService.getServers(url);
+  }
+
+  @Get("sources")
+  async getSources(@Query("url", new ZodPipe(urlQueryParam)) _url: string) {
+    return "hello";
   }
 }

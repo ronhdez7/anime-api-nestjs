@@ -1,8 +1,7 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { AnimeStreamingService } from "src/anime/anime.service";
+import { Injectable } from "@nestjs/common";
+import { AnimeService } from "src/anime/anime.service";
 import {
   AnimeCard,
-  AnimeFilmType,
   AnimeFilterOptions,
   EpisodeCard,
   ObjectKeys,
@@ -17,7 +16,6 @@ import {
   AnicrushSourceCard,
 } from "./interfaces/anicrush.interface";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
-import { ApiException } from "src/errors/http.exception";
 import {
   animePageNotFoundError,
   episodePageNotFoundError,
@@ -27,7 +25,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
-export class AnicrushService implements AnimeStreamingService {
+export class AnicrushService implements AnimeService {
   readonly ANICRUSH_BASE_URL = "https://anicrush.to";
   readonly ANICRUSH_API_URL = "https://api.anicrush.to";
   readonly BASE_IMAGE_PATH =

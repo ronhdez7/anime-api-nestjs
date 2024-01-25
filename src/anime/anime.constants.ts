@@ -6,7 +6,7 @@ import {
 } from "./interfaces/anime.interface";
 import { GogoanimeService } from "./providers/gogoanime/gogoanime.service";
 
-export const ANIME_STREAMING_SERVICE = Symbol("ANIME_STREAMING_SERVICE");
+export const ANIME_SERVICE = Symbol("ANIME_SERVICE");
 
 export const ANIME_PROVIDER = {
   NINEANIME: "9ANIME",

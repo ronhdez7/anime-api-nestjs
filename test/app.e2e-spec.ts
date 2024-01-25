@@ -5,7 +5,7 @@ import { AppModule } from "../src/app.module";
 import {
   ANIME_PROVIDER,
   ANIME_PROVIDER_DETAILS,
-  ANIME_STREAMING_SERVICE,
+  ANIME_SERVICE,
 } from "src/anime/anime.constants";
 import { AnimeProvider } from "src/anime/interfaces/anime.interface";
 
@@ -24,7 +24,7 @@ function AppE2ETest(provider: AnimeProvider) {
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
       })
-        .overrideProvider(ANIME_STREAMING_SERVICE)
+        .overrideProvider(ANIME_SERVICE)
         .useClass(animeService)
         .compile();
 

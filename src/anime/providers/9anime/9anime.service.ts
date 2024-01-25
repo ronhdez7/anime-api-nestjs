@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AnimeStreamingService } from "src/anime/anime.service";
+import { AnimeService } from "src/anime/anime.service";
 import {
   AnimeCard,
   AnimeFilterOptions,
@@ -21,7 +21,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
-export class NineAnimeService implements AnimeStreamingService {
+export class NineAnimeService implements AnimeService {
   readonly NINEANIME_URL = "https://9animetv.to";
 
   constructor(private readonly httpService: HttpService) {}
@@ -138,7 +138,7 @@ export class NineAnimeService implements AnimeStreamingService {
 
       const number = parseInt($(el).attr("data-number") ?? "-1");
 
-      const id = parseInt($(el).attr("data-id") ?? "-1");
+      // const id = parseInt($(el).attr("data-id") ?? "-1");
 
       let link = $(el).attr("href")?.trim() ?? "";
       if (link?.startsWith("/")) {

@@ -7,7 +7,10 @@ import {
   ANIME_PROVIDER_DETAILS,
   ANIME_SERVICE,
 } from "src/anime/anime.constants";
-import { AnimeProvider } from "src/anime/interfaces/anime.interface";
+import {
+  AnimeProvider,
+  SourceResult,
+} from "src/anime/interfaces/anime.interface";
 
 function AppE2ETest(provider: AnimeProvider) {
   const details = ANIME_PROVIDER_DETAILS[provider];
@@ -38,7 +41,7 @@ function AppE2ETest(provider: AnimeProvider) {
     it("GET / 200", async () => {
       const response = await request.get(url).expect(200);
       expect(response.body.data.length).toBeGreaterThanOrEqual(5);
-      url = response.body.data[0].link;
+      url = response.body.data[0].url;
     });
 
     it("GET /filter 200", async () => {
@@ -54,7 +57,7 @@ function AppE2ETest(provider: AnimeProvider) {
         .get(`/episodes?url=${GOOD_URL}`)
         .expect(200);
       expect(goodRes.body.data.length).toBeGreaterThan(0);
-      url = goodRes.body.data[0].link;
+      url = goodRes.body.data[0].url;
     });
 
     it("GET /episodes 400", async () => {
@@ -72,9 +75,9 @@ function AppE2ETest(provider: AnimeProvider) {
       const GOOD_URL = url;
       const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
       expect(goodRes.body.data.length).toBeGreaterThan(0);
-      expect(goodRes.body.data[0].player.link).toBeTruthy();
+      expect(goodRes.body.data[0].playerUrl).toBeTruthy();
 
-      url = goodRes.body.data[0].player.link;
+      url = goodRes.body.data[0].playerUrl;
     });
 
     it("GET /servers 400", async () => {
@@ -88,9 +91,10 @@ function AppE2ETest(provider: AnimeProvider) {
     });
 
     it("GET /sources 200", async () => {
-      const data = (await request.get(`/sources?url=${url}`).expect(200)).body
-        .data;
-      expect(typeof data.url).toEqual("string");
+      const data: SourceResult = (
+        await request.get(`/sources?url=${url}`).expect(200)
+      ).body.data;
+      expect(data.sources.length).toBeGreaterThan(0);
     });
 
     afterAll(async () => {

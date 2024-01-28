@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import { ApiException } from "src/errors/http.exception";
 import { createErrorResponseBody } from "./utils/create-error";
+import { formatErrorCause } from "./utils/error-cause";
 
 @Catch(ApiException)
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -15,6 +16,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     const responseBody = createErrorResponseBody({
       ...errorRes,
+      details: {
+        ...errorRes.details,
+        cause: formatErrorCause(exception),
+      },
       timestamp: Date.now(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
     });

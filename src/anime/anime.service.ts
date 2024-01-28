@@ -1,27 +1,52 @@
 import { Injectable } from "@nestjs/common";
 import {
-  AnimeCard,
+  AnimeResult,
   AnimeFilterOptions,
-  EpisodeCard,
-  ServerCard,
-  SourceCard,
+  EpisodeResult,
+  ServerResult,
+  SourceResult,
+  AnimeProvider,
 } from "./interfaces/anime.interface";
 
 @Injectable()
 export abstract class AnimeService {
-  // extract anime
-  abstract getAnime(): Promise<AnimeCard[]>;
-  abstract scrapeAnime(url: string): Promise<AnimeCard[]>;
+  abstract readonly PROVIDER: AnimeProvider;
+
+  /**
+   * Gets some anime recommendations
+   * @returns A list of anime shown in the homepage
+   */
+  abstract getAnime(): Promise<AnimeResult[]>;
+  /**
+   * Generic function used to scrape list of anime
+   * @retuns A list of anime scraped from the page
+   * @param url The url of the page to scrape from
+   */
+  abstract scrapeAnime(url: string): Promise<AnimeResult[]>;
+  /**
+   * WARNING: It will work correctly, but it is not fully implemented, yet
+   * @returns A list of anime that were filtered
+   * @param options Used for filtering. If string is provided, no modifications will be done to it
+   */
   abstract filterAnime(
     options: AnimeFilterOptions | string,
-  ): Promise<AnimeCard[]>;
+  ): Promise<AnimeResult[]>;
 
-  // get episodes
-  abstract getEpisodes(animeUrl: string): Promise<EpisodeCard[]>;
+  /**
+   * @returns The episodes of an anime
+   * @param animeUrl The url of the anime
+   */
+  abstract getEpisodes(animeUrl: string): Promise<EpisodeResult[]>;
 
-  // get servers
-  abstract getServers(episodeUrl: string): Promise<ServerCard[]>;
+  /**
+   * @returns The servers that are available to show an episode
+   * @param episodeUrl The url of the episode
+   */
+  abstract getServers(episodeUrl: string): Promise<ServerResult[]>;
 
-  // get sources
-  abstract getSources(playerUrl: string): Promise<SourceCard>;
+  /**
+   * Gets the url to .m3u8 files needed to load the video
+   * @param playerUrl The url of the player provided by one of the servers
+   */
+  abstract getSources(playerUrl: string): Promise<SourceResult>;
 }

@@ -1,8 +1,17 @@
 import { HttpService } from "@nestjs/axios";
-import { ObjectKeys, SourceCard } from "src/anime/interfaces/anime.interface";
-import { js as beautify } from "js-beautify";
-import { AES, enc } from "crypto-js";
+import {
+  EncryptedSourceResult,
+  SourceResult,
+} from "src/anime/interfaces/anime.interface";
 import { ApiException } from "src/errors/http.exception";
+import { ObjectKeys } from "src/interfaces/helpers.types";
+import { decrypt } from "./cypher";
+
+export interface SourceResponse
+  extends Omit<SourceResult, "sources" | "playerUrl"> {
+  sources: string | SourceResult["sources"];
+  encrypted: boolean;
+}
 
 const URLS = {
   RAPIDCLOUD: {
@@ -18,11 +27,10 @@ const URLS = {
 export async function getVideoSource(
   httpService: HttpService,
   playerUrl: string,
-): Promise<SourceCard> {
+): Promise<SourceResult> {
   // extract video id from url
   const videoId = new URL(playerUrl).pathname.split("/").at(-1);
   if (!videoId) {
-    /* Maybe return null */
     throw new ApiException("Url provided doesn't contain a video id", 400, {
       description: "Video id should be last path parameter",
     });
@@ -38,11 +46,12 @@ export async function getVideoSource(
   const urls = URLS[playerSource];
 
   // grab encrypted string
-  let encryptedString: string | any[];
+  let sourceResponse: SourceResponse;
   try {
-    encryptedString = (
+    sourceResponse = (
       await httpService.axiosRef.get(urls.GET_SOURCES.concat(videoId))
-    ).data.sources;
+    ).data;
+    if (!sourceResponse) throw new Error("No response");
   } catch (err) {
     throw new ApiException("Internal request failed", 400, {
       cause: err,
@@ -50,43 +59,93 @@ export async function getVideoSource(
     });
   }
   // if source is not encrypted, then I am done
-  if (Array.isArray(encryptedString)) return encryptedString[0];
+  const encryptedString = sourceResponse.sources;
+  if (Array.isArray(encryptedString)) {
+    const result = {
+      ...sourceResponse,
+      sources: encryptedString,
+      encrypted: undefined,
+      playerUrl,
+    };
+    return result;
+  }
 
   // get script
-  let script: string;
+  const scriptUrl = urls.GET_SCRIPT.concat(Date.now().toString());
+  console.log("SCRIPT URL:", scriptUrl);
+  let text: string;
   try {
-    script = (
-      await httpService.axiosRef.get(
-        urls.GET_SCRIPT.concat(Date.now().toString()),
-      )
-    ).data;
+    text = (await httpService.axiosRef.get(scriptUrl)).data;
   } catch (err) {
     throw new ApiException("Internal server error", 500, {
       cause: err,
       description: "Failed to get script to decrypt source",
     });
   }
-  // prettify script to make it easy to extract info from it
-  const text = beautify(script);
 
+  // create function to decrypt string, extracted from script
+  const getsecret = parseScript(text, encryptedString);
+
+  try {
+    const { secret, encryptedSource } = eval(getsecret);
+
+    const decrypted = decrypt(encryptedSource, secret);
+
+    const sources: EncryptedSourceResult[] = JSON.parse(decrypted);
+
+    // return a formatted source
+    const result = {
+      ...sourceResponse,
+      sources,
+      encrypted: undefined,
+      playerUrl,
+    };
+    return result;
+  } catch (err) {
+    console.log(err);
+    throw new ApiException("Internal Server Error", 500, {
+      cause: err,
+      description: "Failed to decrypt source",
+    });
+  }
+}
+
+// another possible regex to get variables; get last match
+// /;const (?:[a-zA-Z]{1,2}=.+?(?:,|;)(?=[a-zA-Z])){10,}/gm
+
+function parseScript(text: string, encryptedString: string) {
   // get global variables
   const allvars =
-    Array.from(text.match(/const(?:[\s,]+\w{1,2}\s=\s.+){10,};/gim) ?? [])?.at(
-      -1,
-    ) ?? "";
+    text
+      .match(
+        /(?<=const (?:[a-zA-Z]{1,2}=(?:'.{0,50}?'|[a-zA-Z]{1,2}\(.{1,6},.{1,6}\))\+[a-zA-Z],)(?:[a-zA-Z]{1,2}=(?:'.{0,50}?'|[a-zA-Z]{1,2}\(.{1,6},.{1,6}\)),){6})(?:[a-zA-Z]=.{1,6}(?:,|;))+/gm,
+      )
+      ?.at(-1) ?? "";
   // format variables to be used
-  const vars = "const " + allvars.split(",\n").slice(7).join(",\n");
+  const vars = "const " + allvars;
 
   // get the decrypting function
-  let func = "";
+  let start = text.length;
+  let end = -1;
   let found = false;
   for (let i = text.length - 1; i > 0; i--) {
-    if (found && text[i] === " ") break;
-    func = text[i] + func;
-    if (i > text.length - 20) continue;
-
+    if (found && text[i] === "=") break;
+    start--;
+    if (
+      text[i] === ")" &&
+      text[i + 1] === ";" &&
+      text[i + 2] === "}" &&
+      text[i + 3] === ";" &&
+      end < 0
+    ) {
+      end = i + 3;
+    }
     if (text[i + 1] === "=" && text[i + 2] === ">") found = true;
   }
+  // const start = text.search(
+  //   /(?<=Storage&&localStorage\[.+?\]\(\w{1,2}\);\},\w{1,2}=)\w{1,2}=>\{function \w{1,2}\(\w,\w\)\{return \w{1,2}/gm,
+  // );
+  let func = text.slice(start, end);
 
   // replace function calls with their values
   const values = ["slice", "replace", "substring"];
@@ -106,37 +165,19 @@ export async function getVideoSource(
   }
 
   // extract variable names
-  const keyName =
-    Array.from(func.match(/(?<=let )\w{1,2}(?=\s=)/gm) ?? [])[0] ?? "";
+  const secretName =
+    Array.from(func.match(/(?<=let )\w{1,2}(?=='',\w{1,2}=)/gm) ?? [])[0] ?? "";
   const encryptedName =
-    Array.from(func.match(/(?<=\s+)\w{1,2}(?=\s=)/gm) ?? [])[1] ?? "";
+    Array.from(func.match(/(?<=let \w{1,2}='',)\w{1,2}(?==)/gm) ?? [])[0] ?? "";
 
   // replace the return values with the variables I need
   func = func.replace(
-    /return .+;\n\s*\};/,
-    `return { key: ${keyName}, encryptedSource: ${encryptedName} };\n};`,
+    /return \w{1,2}\(\w{1,2},\w{1,2}\);}$/gm,
+    `return { secret: ${secretName}, encryptedSource: ${encryptedName} };\n}`,
   );
 
   // build the new script that will be called with eval()
-  const getkey = `function main() {
-		${vars};
-		return (${func.trim().slice(0, -1)})("${encryptedString}")
-	}\nmain()`;
+  const getsecret = `function main() { ${vars}; return (${func.trim()})("${encryptedString}") }\nmain()`;
 
-  try {
-    const { key, encryptedSource } = eval(getkey);
-
-    // decrypt source and convert it to array of sources
-    const val = JSON.parse(
-      AES.decrypt(encryptedSource, key).toString(enc.Utf8),
-    );
-
-    // return the only source available
-    return { url: val[0].file };
-  } catch (err) {
-    throw new ApiException("Internal Server Error", 500, {
-      cause: err,
-      description: "Failed to decrypt source",
-    });
-  }
+  return getsecret;
 }

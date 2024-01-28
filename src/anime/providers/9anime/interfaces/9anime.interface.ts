@@ -1,6 +1,7 @@
 export interface NineAnimeApiResponse {
   status: boolean;
   html: string;
+  // totalItems: number
 }
 
 export interface NineAnimeSourceApiResponse {

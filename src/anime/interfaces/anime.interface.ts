@@ -1,14 +1,18 @@
 import { Type } from "@nestjs/common";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { AnimeService } from "../anime.service";
-
-export type ObjectKeys<T> = keyof T;
-export type ObjectValues<T> = T[keyof T];
+import { ObjectValues } from "src/interfaces/helpers.types";
 
 export type AnimeProvider = ObjectValues<typeof ANIME_PROVIDER>;
-export type AnimeFilmType = "movie" | "show";
+export type AnimeFilmType =
+  | "MOVIE"
+  | "TV"
+  | "OVA"
+  | "ONA"
+  | "SPECIAL"
+  | "MUSIC";
 
-export interface AnimeCard {
+export interface AnimeResult {
   provider: AnimeProvider;
   name: string | null;
   jname: string | null;
@@ -16,12 +20,17 @@ export interface AnimeCard {
     sub: boolean;
     dub: boolean;
   };
-  filmType: string | null;
-  link: string | null;
+  filmType: AnimeFilmType | null;
+  url: string;
   image: string | null;
   quality: string | null;
+  episodeCount: number | null;
 }
 
+/**
+ * Not used right now.
+ * Replaced by string options.
+ */
 export interface AnimeFilterOptions {
   keyword?: string;
   type?: string[]; // number[]
@@ -34,32 +43,52 @@ export interface AnimeFilterOptions {
   page?: number;
 }
 
-export interface EpisodeCard {
+export interface EpisodeResult {
   provider: AnimeProvider;
+  providerId: number;
   name: string | null;
+  jname: string | null;
   number: number;
-  link: string;
+  url: string | null;
 }
 
-export interface ServerCard {
+export interface ServerResult {
   provider: AnimeProvider;
   name: string;
-  id: number;
-  link: string | null;
-  type: string;
-  player?: PlayerCard;
+  serverNumber: number;
+  url: string;
+  audioType: string;
+  playerUrl: string;
 }
 
-export interface PlayerCard {
-  link: string;
+export interface SourceTrack {
+  file: string;
+  kind: string;
+  label?: string;
+  default?: true;
+}
+
+export interface AnimeSectionTimestamps {
+  start: number;
+  end: number;
+}
+
+export interface SourceResult {
+  sources: EncryptedSourceResult[];
+  tracks: SourceTrack[];
+  intro: AnimeSectionTimestamps;
+  outro: AnimeSectionTimestamps;
+  server: number;
+  playerUrl: string;
+}
+
+export interface EncryptedSourceResult {
+  url: string;
+  type: string;
 }
 
 export interface AnimeProviderDetails {
   type: AnimeProvider;
   baseUrl: string;
   service: Type<AnimeService>;
-}
-
-export interface SourceCard {
-  url: string;
 }

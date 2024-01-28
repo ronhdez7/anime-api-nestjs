@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { AnimeService } from "src/anime/anime.service";
 import {
-  AnimeCard,
+  AnimeResult,
   AnimeFilterOptions,
-  EpisodeCard,
-  ServerCard,
-  PlayerCard,
-  SourceCard,
+  EpisodeResult,
+  ServerResult,
+  AnimeProvider,
+  AnimeFilmType,
+  SourceResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
@@ -21,18 +22,20 @@ import {
 } from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
 import { getVideoSource } from "../shared/get-video-source";
+import { ApiException } from "src/errors/http.exception";
 
 @Injectable()
 export class NineAnimeService implements AnimeService {
+  readonly PROVIDER: AnimeProvider = "9ANIME";
   readonly NINEANIME_URL = "https://9animetv.to";
 
   constructor(private readonly httpService: HttpService) {}
 
-  async getAnime() {
+  async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home");
   }
 
-  async scrapeAnime(url: string) {
+  async scrapeAnime(url: string): Promise<AnimeResult[]> {
     if (url.startsWith("/")) {
       url = this.NINEANIME_URL + url;
     }
@@ -43,18 +46,39 @@ export class NineAnimeService implements AnimeService {
     } catch (err) {
       throw animePageNotFoundError(err);
     }
-
     const $ = cheerio.load(html);
 
-    const animes: AnimeCard[] = [];
+    const animes: AnimeResult[] = [];
     $("div.film_list-wrap")
       .children()
       .each((_, el) => {
+        // skip anime if url is not found
+        let url = $(el).find("a.film-poster-ahref").attr("href")?.trim();
+        if (!url) return;
+        else if (url.startsWith("/")) {
+          url = this.NINEANIME_URL + url;
+        }
+
         const name = $(el).find("a.dynamic-name").attr("title") ?? null;
         const jname = $(el).find("a.dynamic-name").attr("data-jname") ?? null;
         const sub = $(el).find("div.tick-sub").text().trim() === "SUB";
         const dub = $(el).find("div.tick-dub").text().trim() === "DUB";
         const quality = $(el).find("div.tick-quality").text().trim() || null;
+        let filmType: AnimeFilmType | null = null;
+        // get episode number
+        const episodeText =
+          $(el).find("div.tick-eps").text().trim().split(" ")[1] ?? null;
+        let episodeCount: number | null = null;
+        if (!episodeText) episodeCount = null;
+        else if (episodeText === "Full") {
+          episodeCount = 1;
+          filmType = "MOVIE";
+        } else if (episodeText.includes("/")) {
+          episodeCount = Number(episodeText.split("/")[0]) || null;
+        } else if (Number(episodeText)) {
+          episodeCount = Number(episodeText);
+          filmType = "TV";
+        }
 
         let image =
           $(el).find("img.film-poster-img").attr("data-src")?.trim() ?? null;
@@ -62,24 +86,19 @@ export class NineAnimeService implements AnimeService {
           image = this.NINEANIME_URL + image;
         }
 
-        let link =
-          $(el).find("a.film-poster-ahref").attr("href")?.trim() ?? null;
-        if (link?.startsWith("/")) {
-          link = this.NINEANIME_URL + link;
-        }
-
-        const card: AnimeCard = {
-          provider: ANIME_PROVIDER.NINEANIME,
+        const card: AnimeResult = {
+          provider: this.PROVIDER,
           name,
           jname,
           image,
-          link,
+          url,
           audioType: {
             sub,
             dub,
           },
-          filmType: null,
-          quality,
+          filmType,
+          quality: quality && quality !== "N/A" ? quality : null,
+          episodeCount: episodeCount || null,
         };
 
         animes.push(card);
@@ -90,7 +109,7 @@ export class NineAnimeService implements AnimeService {
 
   async filterAnime(
     options: AnimeFilterOptions | string,
-  ): Promise<AnimeCard[]> {
+  ): Promise<AnimeResult[]> {
     let url: string = `${this.NINEANIME_URL}/filter?`;
     if (typeof options === "string") {
       url += options;
@@ -111,10 +130,13 @@ export class NineAnimeService implements AnimeService {
     return await this.scrapeAnime(url);
   }
 
-  async getEpisodes(animeUrl: string): Promise<EpisodeCard[]> {
-    const animeId = this.getIdFromUrl(animeUrl);
-
-    if (animeId < 0) return [];
+  async getEpisodes(animeUrl: string): Promise<EpisodeResult[]> {
+    const animeId = new URL(animeUrl).pathname.split("-").at(-1);
+    if (!animeId) {
+      throw new ApiException("Could not get anime id", 400, {
+        description: "Anime id must be provided at end `...-<id>`",
+      });
+    }
 
     let data: NineAnimeApiResponse;
     try {
@@ -134,25 +156,26 @@ export class NineAnimeService implements AnimeService {
       throw episodePageNotFoundError("No episodes");
     }
 
-    const episodes: EpisodeCard[] = [];
+    const episodes: EpisodeResult[] = [];
+
     $("div.episodes-ul > a.item").each((_, el) => {
-      const name = $(el).attr("title") ?? "";
+      const name = $(el).attr("title")?.trim() ?? null;
+      const number = Number($(el).attr("data-number")?.trim()) ?? -1;
 
-      const number = parseInt($(el).attr("data-number") ?? "-1");
+      const id = Number($(el).attr("data-id")?.trim()) ?? -1;
 
-      // const id = parseInt($(el).attr("data-id") ?? "-1");
-
-      let link = $(el).attr("href")?.trim() ?? "";
-      if (link?.startsWith("/")) {
-        link = this.NINEANIME_URL + link;
+      let url = $(el).attr("href")?.trim() || null;
+      if (url?.startsWith("/")) {
+        url = this.NINEANIME_URL + url;
       }
 
-      const card: EpisodeCard = {
-        provider: ANIME_PROVIDER.NINEANIME,
+      const card: EpisodeResult = {
+        provider: this.PROVIDER,
+        providerId: id,
         name,
+        jname: null,
         number,
-        // id,
-        link,
+        url,
       };
 
       episodes.push(card);
@@ -161,9 +184,13 @@ export class NineAnimeService implements AnimeService {
     return episodes;
   }
 
-  async getServers(episodeUrl: string): Promise<ServerCard[]> {
-    const episodeId = this.getIdFromUrl(episodeUrl);
-    if (episodeId < 0) return [];
+  async getServers(episodeUrl: string): Promise<ServerResult[]> {
+    const episodeId = new URL(episodeUrl).searchParams.get("ep");
+    if (!episodeId) {
+      throw new ApiException("Could not get episode id", 400, {
+        description: "Episode id must be provided to query param `episodeId`",
+      });
+    }
 
     let data: NineAnimeApiResponse;
     try {
@@ -179,25 +206,31 @@ export class NineAnimeService implements AnimeService {
 
     const $ = cheerio.load(data.html);
 
-    const servers: ServerCard[] = [];
+    const servers: ServerResult[] = [];
 
+    // use for loop to use await
     const elements = $("div.item.server-item");
     for (const el of elements) {
       const name = $(el).text().trim();
-      const id = parseInt($(el).attr("data-server-id") ?? "-1");
-      const sourceId = parseInt($(el).attr("data-id") ?? "-1");
-      const link = `${this.NINEANIME_URL}/ajax/episode/sources?id=${sourceId}`;
+      const serverNumber = Number($(el).data("server-id")) ?? -1;
+      const audioType = $(el).attr("data-type") ?? "sub";
+      const sourceId = Number($(el).data("id")) ?? null;
+      if (!sourceId) continue;
 
-      const type = $(el).attr("data-type") ?? "sub";
+      // oa = play_original_audio
+      // autoplay and oa are not needed
+      const url = `${this.NINEANIME_URL}/ajax/episode/sources?id=${sourceId}&autoPlay=${1}&oa=${0}`;
 
-      const card: ServerCard = {
+      const card: ServerResult = {
         provider: ANIME_PROVIDER.NINEANIME,
         name,
-        id,
-        link,
-        type,
-        player: await this.getPlayer(id),
+        serverNumber,
+        url,
+        audioType,
+        playerUrl: await this.getPlayer(url),
       };
+
+      if (!card.playerUrl) continue;
 
       servers.push(card);
     }
@@ -205,32 +238,18 @@ export class NineAnimeService implements AnimeService {
     return servers;
   }
 
-  async getSources(playerUrl: string): Promise<SourceCard> {
+  async getSources(playerUrl: string): Promise<SourceResult> {
     return await getVideoSource(this.httpService, playerUrl);
   }
 
-  private async getPlayer(id: number): Promise<PlayerCard> {
+  private async getPlayer(sourceUrl: string): Promise<string> {
     let data: NineAnimeSourceApiResponse;
     try {
-      data = (
-        await this.httpService.axiosRef.get(
-          `${this.NINEANIME_URL}/ajax/episode/sources?id=${id}`,
-        )
-      ).data;
+      data = (await this.httpService.axiosRef.get(sourceUrl)).data;
     } catch (e) {
-      throw e;
+      return "";
     }
 
-    const card = {
-      link: data.link,
-    };
-
-    return card;
-  }
-
-  private getIdFromUrl(url: string): number {
-    const id = parseInt(url.slice(url.search(/(?<=(-|=))\d+$/)) ?? "") ?? -1;
-
-    return id;
+    return data?.link;
   }
 }

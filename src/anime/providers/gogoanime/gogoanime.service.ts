@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { AnimeService } from "src/anime/anime.service";
 import {
-  AnimeCard,
+  AnimeResult,
   AnimeFilterOptions,
-  EpisodeCard,
-  ServerCard,
-  SourceCard,
+  EpisodeResult,
+  ServerResult,
+  AnimeProvider,
+  SourceResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import { ANIME_PROVIDER } from "src/anime/anime.constants";
@@ -15,22 +16,24 @@ import {
   episodePageNotFoundError,
   serverPageNotFoundError,
 } from "src/anime/errors/not-found.error";
-import { AES, enc } from "crypto-js";
 import { ApiException } from "src/errors/http.exception";
+import { GogoanimeSourceResult } from "./interfaces/gogoanime.interface";
+import { decrypt, encrypt } from "../shared/cypher";
 
 @Injectable()
 export class GogoanimeService implements AnimeService {
+  readonly PROVIDER: AnimeProvider = "GOGOANIME";
   readonly GOGOANIME_URL = "https://anitaku.to";
   readonly GOGOANIME_EPISODES_URL =
     "https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
   constructor(private readonly httpService: HttpService) {}
 
-  async getAnime(): Promise<AnimeCard[]> {
+  async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home.html");
   }
 
-  async scrapeAnime(url: string): Promise<AnimeCard[]> {
+  async scrapeAnime(url: string): Promise<AnimeResult[]> {
     if (url.startsWith("/")) {
       url = this.GOGOANIME_URL + url;
     }
@@ -41,40 +44,47 @@ export class GogoanimeService implements AnimeService {
     } catch (err) {
       throw animePageNotFoundError(err);
     }
-
     const $ = cheerio.load(html);
 
-    const animes: AnimeCard[] = [];
+    const animes: AnimeResult[] = [];
 
     $("div.last_episodes > ul.items > li").each((_, el) => {
-      const jname = $(el).find("p.name").text();
+      const jname = $(el).find("p.name").text().trim() || null;
 
       const sub = $(el).find("div.img div.type.ic-SUB").length !== 0;
       const dub = $(el).find("div.img div.type.ic-DUB").length !== 0;
-      // const raw = $(el).find("div.img div.type.ic-RAW").length !== 0;
+      const episodeCount =
+        Number($(el).find("p.episode").text().trim().split(" ").at(-1)) || null;
 
-      let image = $(el).find("div.img img").attr("src")?.trim() ?? null;
+      // get url
+      let url = $(el).find("div.img a").attr("href")?.trim();
+      if (!url) return;
+      else if (url.startsWith("/")) {
+        url = this.GOGOANIME_URL + url;
+      }
+      if (url.startsWith(`${this.GOGOANIME_URL}/category/`)) {
+        const slug = url.split("/").at(-1) ?? "";
+        url = `${this.GOGOANIME_URL}/${slug}-episode-${episodeCount ?? 1}`;
+      }
+
+      let image = $(el).find("div.img img").attr("src")?.trim() || null;
       if (image?.startsWith("/")) {
         image = this.GOGOANIME_URL + image;
       }
 
-      let link = $(el).find("div.img a").attr("href")?.trim() ?? null;
-      if (link?.startsWith("/")) {
-        link = this.GOGOANIME_URL + link;
-      }
-
-      const card: AnimeCard = {
+      const card: AnimeResult = {
         provider: ANIME_PROVIDER.GOGOANIME,
         name: null,
         jname,
         image,
-        link,
+        url,
         audioType: {
           sub,
           dub,
         },
         quality: null,
         filmType: null,
+        episodeCount,
       };
 
       animes.push(card);
@@ -85,7 +95,7 @@ export class GogoanimeService implements AnimeService {
 
   async filterAnime(
     options: AnimeFilterOptions | string,
-  ): Promise<AnimeCard[]> {
+  ): Promise<AnimeResult[]> {
     let url = `${this.GOGOANIME_URL}/filter.html?`;
 
     if (typeof options === "string") {
@@ -107,10 +117,8 @@ export class GogoanimeService implements AnimeService {
     return await this.scrapeAnime(url);
   }
 
-  async getEpisodes(animeUrl: string): Promise<EpisodeCard[]> {
+  async getEpisodes(animeUrl: string): Promise<EpisodeResult[]> {
     const animeId = await this.getIdFromUrl(animeUrl);
-
-    if (animeId < 0) return [];
 
     let html: string;
     try {
@@ -127,22 +135,23 @@ export class GogoanimeService implements AnimeService {
 
     const $ = cheerio.load(html);
 
-    const episodes: EpisodeCard[] = [];
+    const episodes: EpisodeResult[] = [];
     $("li").each((_, el) => {
-      const name = $(el).find("div.name").text();
+      const name = $(el).find("div.name").text().trim();
       // const sub = $(el).find("div.cate").text().trim() === "SUB";
-      const number = parseInt(name.slice(name.search(/(?<= )\d+$/))) ?? -1;
-
-      let link = $(el).find("a").attr("href")?.trim() ?? "";
-      if (link?.startsWith("/")) {
-        link = this.GOGOANIME_URL + link;
+      const number = Number(name.split(" ").at(-1)?.trim()) ?? -1;
+      let url = $(el).find("a").attr("href")?.trim() || null;
+      if (url?.startsWith("/")) {
+        url = this.GOGOANIME_URL + url;
       }
 
-      const card: EpisodeCard = {
+      const card: EpisodeResult = {
         provider: ANIME_PROVIDER.GOGOANIME,
-        name,
+        providerId: number,
+        name: null,
+        jname: name,
         number,
-        link,
+        url,
       };
 
       episodes.push(card);
@@ -151,7 +160,7 @@ export class GogoanimeService implements AnimeService {
     return episodes;
   }
 
-  async getServers(episodeUrl: string): Promise<ServerCard[]> {
+  async getServers(episodeUrl: string): Promise<ServerResult[]> {
     if (episodeUrl.startsWith("/")) {
       episodeUrl = this.GOGOANIME_URL + episodeUrl;
     }
@@ -165,29 +174,28 @@ export class GogoanimeService implements AnimeService {
 
     const $ = cheerio.load(html);
 
-    const servers: ServerCard[] = [];
+    const servers: ServerResult[] = [];
     $("div.anime_muti_link > ul > li").each((_, el) => {
       const name =
         $(el).text().split("Choose this server")?.at(0)?.trim() ?? "";
 
-      const id = parseInt($(el).find("a").attr("rel") ?? "-1");
+      const serverNumber = Number($(el).find("a").attr("rel")) ?? -1;
 
-      let link = $(el).find("a").attr("data-video") ?? null;
-      if (link?.startsWith("/")) {
-        link = this.GOGOANIME_URL + link;
+      let url = ($(el).find("a").data("video") as string) || null;
+      if (!url) return;
+      if (url.startsWith("/")) {
+        url = this.GOGOANIME_URL + url;
       }
 
-      const type = $(el).attr("data-type") ?? "sub";
+      const audioType = ($(el).data("type") as string) ?? "sub";
 
-      const card: ServerCard = {
+      const card: ServerResult = {
         provider: ANIME_PROVIDER.GOGOANIME,
         name,
-        id,
-        link,
-        type,
-        player: {
-          link: link ?? "",
-        },
+        serverNumber,
+        url,
+        audioType,
+        playerUrl: url,
       };
 
       servers.push(card);
@@ -196,11 +204,11 @@ export class GogoanimeService implements AnimeService {
     return servers;
   }
 
-  async getSources(playerUrl: string): Promise<SourceCard> {
+  async getSources(playerUrl: string): Promise<SourceResult> {
     const urlobj = new URL(playerUrl);
 
     // extract anime id
-    const animeId = urlobj.searchParams.get("id"); // playerUrl.match(/(?<=id=).+(?=&|$)/)?.at(0) ?? "";
+    const animeId = urlobj.searchParams.get("id");
     if (!animeId) {
       throw new ApiException("No valid id found", 400, {
         description: "Anime id must be provided to query parameter 'id'",
@@ -228,17 +236,11 @@ export class GogoanimeService implements AnimeService {
     try {
       const cryptojsValue: string =
         ($(`script[data-name="episode"]`).data("value") as string) ?? "";
-      const decrypted = enc.Utf8.stringify(
-        AES.decrypt(cryptojsValue, enc.Utf8.parse(keys.firstKey), {
-          iv: enc.Utf8.parse(keys.iv),
-        }),
-      );
+      const decrypted = decrypt(cryptojsValue, keys.firstKey, keys.iv);
 
       const alias = decrypted.substring(0, decrypted.indexOf("&"));
 
-      const idParam = AES.encrypt(alias, enc.Utf8.parse(keys.firstKey), {
-        iv: enc.Utf8.parse(keys.iv),
-      }).toString();
+      const idParam = encrypt(alias, keys.firstKey, keys.iv);
 
       const url = `${urlobj.origin}/encrypt-ajax.php?${decrypted
         .substring(decrypted.indexOf("&"))
@@ -253,15 +255,21 @@ export class GogoanimeService implements AnimeService {
         })
       ).data.data;
 
-      const source = JSON.parse(
-        enc.Utf8.stringify(
-          AES.decrypt(encryptedSource, enc.Utf8.parse(keys.secondKey), {
-            iv: enc.Utf8.parse(keys.iv),
-          }),
-        ),
+      const source: GogoanimeSourceResult = JSON.parse(
+        decrypt(encryptedSource, keys.secondKey, keys.iv),
       );
 
-      return { url: source.source[0].file };
+      return {
+        sources: [
+          ...source.source.map((s) => ({ url: s.file, type: s.type })),
+          ...source.source_bk.map((s) => ({ url: s.file, type: s.type })),
+        ],
+        tracks: source.tracks,
+        intro: { start: 0, end: 0 },
+        outro: { start: 0, end: 0 },
+        server: -1,
+        playerUrl: source.linkiframe,
+      };
     } catch (err) {
       throw new ApiException("Internal server error", 500, {
         cause: err,
@@ -270,7 +278,7 @@ export class GogoanimeService implements AnimeService {
     }
   }
 
-  private async getIdFromUrl(url: string): Promise<number> {
+  private async getIdFromUrl(url: string): Promise<string> {
     if (url.startsWith("/")) {
       url = this.GOGOANIME_URL + url;
     }
@@ -279,16 +287,20 @@ export class GogoanimeService implements AnimeService {
     try {
       html = (await this.httpService.axiosRef.get(url)).data;
     } catch (err) {
-      console.log(err);
-      return -1;
+      throw new ApiException("Invalid anime url", 400, {
+        description: "Request to provided url failed",
+      });
     }
 
     const $ = cheerio.load(html);
 
-    const id =
-      Number(
-        $("input#movie_id.movie_id[type=hidden]").val()?.toString() ?? "-1",
-      ) ?? -1;
+    const id = $("input#movie_id.movie_id[type=hidden]").val();
+
+    if (!id || typeof id !== "string") {
+      throw new ApiException("Invalid anime url", 400, {
+        description: "Could not get valid id from url",
+      });
+    }
 
     return id;
   }

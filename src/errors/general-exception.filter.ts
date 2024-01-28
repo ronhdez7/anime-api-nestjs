@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import { createErrorResponseBody } from "./utils/create-error";
-import { AxiosError } from "axios";
+import { formatErrorCause } from "./utils/error-cause";
 
 @Catch()
 export class ApiGeneralExceptionFilter implements ExceptionFilter {
@@ -21,17 +21,7 @@ export class ApiGeneralExceptionFilter implements ExceptionFilter {
       message: "An unexpected internal error happened. Please try again later.",
       statusCode: httpStatusCode,
       details: {
-        cause:
-          exception instanceof AxiosError
-            ? exception.toJSON()
-            : exception instanceof Error
-              ? {
-                  ...exception,
-                  name: exception.name,
-                  message: exception.message,
-                  stack: undefined,
-                }
-              : exception,
+        cause: formatErrorCause(exception),
         description: "An error happened on our side.",
       },
       timestamp: Date.now(),

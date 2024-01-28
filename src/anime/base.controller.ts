@@ -3,20 +3,20 @@ import { AnimeService } from "./anime.service";
 import { urlQueryParam } from "./validation/url-query.param";
 import { ZodPipe } from "../pipes/zod.pipe";
 
+/**
+ * Controller that all anime controllers extend
+ */
 export class BaseAnimeController {
   constructor(protected readonly animeService: AnimeService) {}
 
   @Get()
-  async getRecommended() {
+  async getAnime() {
     return await this.animeService.getAnime();
   }
 
   @Get("filter")
   async filterAnime(@Query() query: Record<string, string>) {
-    // convert query object to string
-    const stringQuery = Object.keys(query).reduce((prev, key) => {
-      return `${prev}${prev ? "&" : ""}${key}=${query[key]}`;
-    }, "");
+    const stringQuery = new URLSearchParams(query).toString();
     return await this.animeService.filterAnime(stringQuery);
   }
 

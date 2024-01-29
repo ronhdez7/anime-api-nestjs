@@ -1,3 +1,9 @@
+/**
+ * Not used, replaced by individual testing files for each provider
+ *
+ * Missing source error tests
+ */
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import * as supertest from "supertest";
@@ -9,14 +15,35 @@ import {
 } from "src/anime/anime.constants";
 import {
   AnimeProvider,
-  SourceResult,
+  AnimeResult,
+  EpisodeResult,
+  ServerResult,
 } from "src/anime/interfaces/anime.interface";
+import {
+  animeResultSchema,
+  episodeResultSchema,
+  serverResultSchema,
+  sourceResultSchema,
+} from "../src/anime/schemas/anime.schema";
+import { ApiResponse } from "src/interfaces/api.interface";
+
+interface TestResponse<Body = any> extends supertest.Response {
+  body: ApiResponse<Body>;
+}
+
+interface TestSuccess<Body = any> extends supertest.Response {
+  body: { success: true; data: Body };
+}
+
+// interface TestError extends supertest.Response {
+//   body: { success: false; error: ApiExceptionResponse };
+// }
 
 function AppE2ETest(provider: AnimeProvider) {
   const details = ANIME_PROVIDER_DETAILS[provider];
   const animeService = details.service;
 
-  describe(`${animeService.name} (e2e)`, () => {
+  describe.skip(`${animeService.name} (e2e)`, () => {
     let app: INestApplication;
     let request: supertest.SuperTest<supertest.Test>;
 
@@ -37,68 +64,96 @@ function AppE2ETest(provider: AnimeProvider) {
       request = supertest(app.getHttpServer());
     });
 
-    // get animes
-    it("GET / 200", async () => {
-      const response = await request.get(url).expect(200);
-      expect(response.body.data.length).toBeGreaterThanOrEqual(5);
-      url = response.body.data[0].url;
+    // Anime Scraping
+    test("GET / 200", (done) => {
+      request
+        .get(url)
+        .expect(200)
+        .expect((res: TestResponse) =>
+          animeResultSchema.parse(res.body.success && res.body.data),
+        )
+        .expect(
+          (res: TestSuccess<AnimeResult[]>) => (url = res.body.data[0]!.url),
+        )
+        .end(done);
     });
 
-    it("GET /filter 200", async () => {
-      const FILTER_URL = `/filter?genres=1%2C2&page=1&keyword=one-piece`;
-      const response = await request.get(FILTER_URL).expect(200);
-      expect(response.body.data.length).toBeGreaterThanOrEqual(5);
+    // Filter Anime
+    test("GET /filter 200", (done) => {
+      request
+        .get("/filter?keyword=one+piece")
+        .expect(200)
+        .expect((res: TestResponse) =>
+          animeResultSchema.parse(res.body.success && res.body.data),
+        )
+        .end(done);
     });
 
-    // get episodes
-    it("GET /episodes 200", async () => {
-      const GOOD_URL = url;
-      const goodRes = await request
-        .get(`/episodes?url=${GOOD_URL}`)
-        .expect(200);
-      expect(goodRes.body.data.length).toBeGreaterThan(0);
-      url = goodRes.body.data[0].url;
+    // Get episodes
+    test("GET /episodes 400", (done) => {
+      request
+        .get(`/episodes?url=${url.slice(0, -10)}`)
+        .expect(400)
+        .end(done);
     });
 
-    it("GET /episodes 400", async () => {
-      const BAD_URL = url.slice(8);
-      request.get(`/episodes?url=${BAD_URL}`).expect(400);
+    test("GET /episodes 404", (done) => {
+      request.get(`/episodes?url=${url}.-12345`).expect(404).end(done);
     });
 
-    it("GET /episodes 404", async () => {
-      const BAD_URL = `${url}000000`;
-      request.get(`/episodes?url=${BAD_URL}`).expect(404);
+    test("GET /episodes 200", (done) => {
+      console.log("EPISODES URL:", url);
+
+      request
+        .get(`/episodes?url=${url}`)
+        .expect(200)
+        .expect((res: TestResponse) =>
+          episodeResultSchema.parse(res.body.success && res.body.data),
+        )
+        .expect(
+          (res: TestSuccess<EpisodeResult[]>) =>
+            (url = res.body.data.find((ep) => ep.url)!.url!),
+        )
+        .end(done);
     });
 
     // get servers
-    it("GET /servers 200", async () => {
-      const GOOD_URL = url;
-      const goodRes = await request.get(`/servers?url=${GOOD_URL}`).expect(200);
-      expect(goodRes.body.data.length).toBeGreaterThan(0);
-      expect(goodRes.body.data[0].playerUrl).toBeTruthy();
-
-      url = goodRes.body.data[0].playerUrl;
+    test("GET /servers 400", (done) => {
+      request.get(`/servers?url=${url}abcde`).expect(400).end(done);
     });
 
-    it("GET /servers 400", async () => {
-      const BAD_URL = url.slice(8);
-      request.get(`/servers?url=${BAD_URL}`).expect(400);
+    test("GET /servers 404", (done) => {
+      request.get(`/servers?url=${url}123456`).expect(404).end(done);
     });
 
-    it("GET /servers 404", () => {
-      const BAD_URL = `${url}000000`;
-      request.get(`/servers?url=${BAD_URL}`).expect(404);
+    test("GET /servers 200", (done) => {
+      request
+        .get(`/servers?url=${url}`)
+        .expect(200)
+        .expect((res: TestResponse) =>
+          serverResultSchema.parse(res.body.success && res.body.data),
+        )
+        .expect(
+          (res: TestSuccess<ServerResult[]>) =>
+            (url = res.body.data[0]!.playerUrl),
+        )
+        .end(done);
     });
 
-    it("GET /sources 200", async () => {
-      const data: SourceResult = (
-        await request.get(`/sources?url=${url}`).expect(200)
-      ).body.data;
-      expect(data.sources.length).toBeGreaterThan(0);
+    // get sources
+    test("GET /sources 200", (done) => {
+      request
+        .get(`/sources?url=${url}`)
+        .expect(200)
+        .expect((res: TestResponse) =>
+          sourceResultSchema.parse(res.body.success && res.body.data),
+        )
+        .end(done);
     });
 
     afterAll(async () => {
       await app.close();
+      url = "/";
     });
   });
 }
@@ -106,8 +161,11 @@ function AppE2ETest(provider: AnimeProvider) {
 // run all tests of providers
 const providers: AnimeProvider[] = Object.values(ANIME_PROVIDER);
 providers.forEach((provider) => {
+  if (provider === ANIME_PROVIDER.GOGOANIME) return;
   AppE2ETest(provider);
 });
+
+// AppE2ETest(ANIME_PROVIDER.ANICRUSH);
 
 // so that jest doesn't complain for not having any tests
 describe.skip("Skip", () => {});

@@ -73,8 +73,13 @@ export interface AnimeSectionTimestamps {
   end: number;
 }
 
+export interface Source {
+  url: string;
+  type: string;
+}
+
 export interface SourceResult {
-  sources: EncryptedSourceResult[];
+  sources: Source[];
   tracks: SourceTrack[];
   intro: AnimeSectionTimestamps;
   outro: AnimeSectionTimestamps;
@@ -83,7 +88,7 @@ export interface SourceResult {
 }
 
 export interface EncryptedSourceResult {
-  url: string;
+  file: string;
   type: string;
 }
 

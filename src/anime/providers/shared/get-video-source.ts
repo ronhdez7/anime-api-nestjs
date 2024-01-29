@@ -7,9 +7,8 @@ import { ApiException } from "src/errors/http.exception";
 import { ObjectKeys } from "src/interfaces/helpers.types";
 import { decrypt } from "./cypher";
 
-export interface SourceResponse
-  extends Omit<SourceResult, "sources" | "playerUrl"> {
-  sources: string | SourceResult["sources"];
+interface SourceResponse extends Omit<SourceResult, "sources" | "playerUrl"> {
+  sources: string | EncryptedSourceResult[];
   encrypted: boolean;
 }
 
@@ -53,7 +52,7 @@ export async function getVideoSource(
     ).data;
     if (!sourceResponse) throw new Error("No response");
   } catch (err) {
-    throw new ApiException("Internal request failed", 400, {
+    throw new ApiException("Internal request failed", 404, {
       cause: err,
       description: "Check url has a valid video id",
     });
@@ -63,7 +62,7 @@ export async function getVideoSource(
   if (Array.isArray(encryptedString)) {
     const result = {
       ...sourceResponse,
-      sources: encryptedString,
+      sources: encryptedString.map((s) => ({ url: s.file, type: s.type })),
       encrypted: undefined,
       playerUrl,
     };
@@ -72,7 +71,6 @@ export async function getVideoSource(
 
   // get script
   const scriptUrl = urls.GET_SCRIPT.concat(Date.now().toString());
-  console.log("SCRIPT URL:", scriptUrl);
   let text: string;
   try {
     text = (await httpService.axiosRef.get(scriptUrl)).data;
@@ -96,7 +94,7 @@ export async function getVideoSource(
     // return a formatted source
     const result = {
       ...sourceResponse,
-      sources,
+      sources: sources.map((s) => ({ url: s.file, type: s.type })),
       encrypted: undefined,
       playerUrl,
     };

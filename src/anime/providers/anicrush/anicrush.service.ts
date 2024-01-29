@@ -15,7 +15,6 @@ import {
   AnicrushServerGuide,
   AnicrushSourceResult,
 } from "./interfaces/anicrush.interface";
-import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import {
   animePageNotFoundError,
   episodePageNotFoundError,
@@ -86,7 +85,7 @@ export class AnicrushService implements AnimeService {
       }
 
       const card: AnimeResult = {
-        provider: ANIME_PROVIDER.ANICRUSH,
+        provider: this.PROVIDER,
         name: anime.name_english,
         jname: anime.name,
         audioType: {
@@ -121,7 +120,7 @@ export class AnicrushService implements AnimeService {
 
   async getEpisodes(animeUrl: string): Promise<EpisodeResult[]> {
     const animeId = new URL(animeUrl).pathname.split(".").at(-1);
-    if (!animeId) {
+    if (!animeId || animeId.length > 6) {
       throw new ApiException("Could not get anime id", 400, {
         description: "Anime id must be provided at end `/slug.<id>`",
       });
@@ -145,7 +144,7 @@ export class AnicrushService implements AnimeService {
     for (const range in data.result) {
       for (const episode of data.result[range]!) {
         const card: EpisodeResult = {
-          provider: ANIME_PROVIDER.ANICRUSH,
+          provider: this.PROVIDER,
           providerId: episode.id,
           name: episode.name_english,
           jname: episode.name,
@@ -164,7 +163,7 @@ export class AnicrushService implements AnimeService {
     const animeId = new URL(episodeUrl).pathname.split(".").at(-1);
     const episodeNumber =
       Number(new URL(episodeUrl).searchParams.get("ep")) ?? -1;
-    if (!animeId || episodeNumber < 0) {
+    if (!animeId || animeId.length > 6 || !episodeNumber || episodeNumber < 0) {
       throw new ApiException("Could not get anime id or episode number", 400, {
         description: "Url must be `/slug.<id>?ep=<number>`",
       });
@@ -190,7 +189,7 @@ export class AnicrushService implements AnimeService {
         const url = `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${server.server}&sc=${audioType}`;
 
         const card: ServerResult = {
-          provider: ANIME_PROVIDER.ANICRUSH,
+          provider: this.PROVIDER,
           serverNumber: server.server,
           name: server.streamServer.name,
           url,

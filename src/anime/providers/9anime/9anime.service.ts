@@ -10,7 +10,6 @@ import {
   SourceResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
-import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import {
   NineAnimeApiResponse,
   NineAnimeSourceApiResponse,
@@ -131,8 +130,8 @@ export class NineAnimeService implements AnimeService {
   }
 
   async getEpisodes(animeUrl: string): Promise<EpisodeResult[]> {
-    const animeId = new URL(animeUrl).pathname.split("-").at(-1);
-    if (!animeId) {
+    const animeId = Number(new URL(animeUrl).pathname.split("-").at(-1)) ?? -1;
+    if (!animeId || animeId < 0) {
       throw new ApiException("Could not get anime id", 400, {
         description: "Anime id must be provided at end `...-<id>`",
       });
@@ -185,8 +184,8 @@ export class NineAnimeService implements AnimeService {
   }
 
   async getServers(episodeUrl: string): Promise<ServerResult[]> {
-    const episodeId = new URL(episodeUrl).searchParams.get("ep");
-    if (!episodeId) {
+    const episodeId = Number(new URL(episodeUrl).searchParams.get("ep")) ?? -1;
+    if (!episodeId || episodeId < 0) {
       throw new ApiException("Could not get episode id", 400, {
         description: "Episode id must be provided to query param `episodeId`",
       });
@@ -222,7 +221,7 @@ export class NineAnimeService implements AnimeService {
       const url = `${this.NINEANIME_URL}/ajax/episode/sources?id=${sourceId}&autoPlay=${1}&oa=${0}`;
 
       const card: ServerResult = {
-        provider: ANIME_PROVIDER.NINEANIME,
+        provider: this.PROVIDER,
         name,
         serverNumber,
         url,

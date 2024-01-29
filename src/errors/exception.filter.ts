@@ -18,7 +18,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       ...errorRes,
       details: {
         ...errorRes.details,
-        cause: formatErrorCause(exception),
+        cause: formatErrorCause(exception.cause),
       },
       timestamp: Date.now(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),

@@ -1,5 +1,5 @@
 import { HttpModule } from "@nestjs/axios";
 
 export const FetchModule = HttpModule.register({
-  timeout: 5000,
+  timeout: 10000,
 });

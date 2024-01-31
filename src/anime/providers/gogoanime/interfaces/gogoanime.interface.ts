@@ -14,7 +14,7 @@ interface GogoanimeSource {
 export interface GogoanimeSourceResult {
   source: GogoanimeSource[];
   source_bk: GogoanimeSource[];
-  track: { tracks: SourceTrack[] };
+  track: { tracks?: SourceTrack[] };
   advertising: any[];
   linkiframe: string;
 }

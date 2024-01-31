@@ -263,7 +263,7 @@ export class GogoanimeService implements AnimeService {
           ...source.source.map((s) => ({ url: s.file, type: s.type })),
           ...source.source_bk.map((s) => ({ url: s.file, type: s.type })),
         ],
-        tracks: source.track.tracks,
+        tracks: source.track.tracks ?? [],
         intro: { start: 0, end: 0 },
         outro: { start: 0, end: 0 },
         server: -1,

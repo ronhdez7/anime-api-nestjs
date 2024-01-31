@@ -11,6 +11,8 @@ import { ApiGeneralExceptionFilter } from "./errors/general-exception.filter";
 import { SerializeInterceptor } from "./interceptors/serializer.interceptor";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerExceptionFilter } from "./errors/throttler-exception.filter";
+import { CacheModule } from "@nestjs/cache-manager";
+import { CacheControlInterceptor } from "./interceptors/cache-control.interceptor";
 
 @Module({
   controllers: [AppController],
@@ -32,6 +34,10 @@ import { ThrottlerExceptionFilter } from "./errors/throttler-exception.filter";
       useClass: SerializeInterceptor,
     },
     {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheControlInterceptor,
+    },
+    {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
@@ -43,6 +49,9 @@ import { ThrottlerExceptionFilter } from "./errors/throttler-exception.filter";
         limit: 90,
       },
     ]),
+    CacheModule.register({
+      ttl: 60 * 1000,
+    }),
     AnimeModule.register(NineAnimeService),
     NineAnimeModule,
     GogoanimeModule,

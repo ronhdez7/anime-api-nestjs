@@ -17,7 +17,7 @@ import { ANIME_SERVICE } from "src/anime/anime.constants";
 import * as supertest from "supertest";
 import { GogoanimeService } from "../gogoanime.service";
 
-describe.skip("GOGOANIME End-To-End Test", () => {
+describe("GOGOANIME End-To-End Test", () => {
   let app: INestApplication;
   let request: supertest.SuperTest<supertest.Test>;
 

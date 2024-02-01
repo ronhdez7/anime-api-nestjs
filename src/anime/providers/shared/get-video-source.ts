@@ -81,11 +81,22 @@ export async function getVideoSource(
     });
   }
 
-  // create function to decrypt string, extracted from script
-  const getsecret = parseScript(text, encryptedString);
+  // extract needed variables
+  const allvars =
+    Array.from(
+      text.match(
+        /(?<=const (?:\w{1,2}=(?:'.{0,50}?'|\w{1,2}\(.{0,20}?\)).{0,20}?,){7}).+?;/gm,
+      ) ?? [],
+    )?.at(-1) ?? "";
+  // and convert their values into an array of numbers
+  const vars = allvars
+    .slice(0, -1)
+    .split(",")
+    .map((v) => Number(v.split("=").at(-1)))
+    .filter((n) => n);
 
   try {
-    const { secret, encryptedSource } = eval(getsecret);
+    const { secret, encryptedSource } = getSecret(encryptedString, vars);
 
     const decrypted = decrypt(encryptedSource, secret);
 
@@ -108,74 +119,52 @@ export async function getVideoSource(
   }
 }
 
-// another possible regex to get variables; get last match
-// /;const (?:[a-zA-Z]{1,2}=.+?(?:,|;)(?=[a-zA-Z])){10,}/gm
+// Copied from minified script of rapid-cloud.co
+// Slightly modified for readibility and ease of use
+function getSecret(encryptedString: string, values: number[]) {
+  let secret = "",
+    encryptedSource = encryptedString,
+    totalInc = 0;
 
-function parseScript(text: string, encryptedString: string) {
-  // get global variables
-  const allvars =
-    text
-      .match(
-        /(?<=const (?:[a-zA-Z]{1,2}=(?:'.{0,50}?'|[a-zA-Z]{1,2}\(.{1,6},.{1,6}\))\+[a-zA-Z],)(?:[a-zA-Z]{1,2}=(?:'.{0,50}?'|[a-zA-Z]{1,2}\(.{1,6},.{1,6}\)),){6})(?:[a-zA-Z]=.{1,6}(?:,|;))+/gm,
-      )
-      ?.at(-1) ?? "";
-  // format variables to be used
-  const vars = "const " + allvars;
-
-  // get the decrypting function
-  let start = text.length;
-  let end = -1;
-  let found = false;
-  for (let i = text.length - 1; i > 0; i--) {
-    if (found && text[i] === "=") break;
-    start--;
-    if (
-      text[i] === ")" &&
-      text[i + 1] === ";" &&
-      text[i + 2] === "}" &&
-      text[i + 3] === ";" &&
-      end < 0
-    ) {
-      end = i + 3;
+  for (let i = 0; i < values[0]!; i++) {
+    let start, inc;
+    switch (i) {
+      case 0:
+        (start = values[2]), (inc = values[1]);
+        break;
+      case 1:
+        (start = values[4]), (inc = values[3]);
+        break;
+      case 2:
+        (start = values[6]), (inc = values[5]);
+        break;
+      case 3:
+        (start = values[8]), (inc = values[7]);
+        break;
+      case 4:
+        (start = values[10]), (inc = values[9]);
+        break;
+      case 5:
+        (start = values[12]), (inc = values[11]);
+        break;
+      case 6:
+        (start = values[14]), (inc = values[13]);
+        break;
+      case 7:
+        (start = values[16]), (inc = values[15]);
+        break;
+      case 8:
+        (start = values[18]), (inc = values[17]);
     }
-    if (text[i + 1] === "=" && text[i + 2] === ">") found = true;
-  }
-  // const start = text.search(
-  //   /(?<=Storage&&localStorage\[.+?\]\(\w{1,2}\);\},\w{1,2}=)\w{1,2}=>\{function \w{1,2}\(\w,\w\)\{return \w{1,2}/gm,
-  // );
-  let func = text.slice(start, end);
-
-  // replace function calls with their values
-  const values = ["slice", "replace", "substring"];
-  let count = 0;
-  let inside = false; // to check against "[..'...].'..]"
-  for (let i = 0; i < func.length; i++) {
-    const c = func[i];
-    if (c === "[") {
-      let j = i + 1;
-      while (func[j] !== "]" || inside) {
-        if (func[j] === "'") inside = !inside;
-        j++;
-      }
-      func = func.slice(0, i + 1) + `"${values[count]}"` + func.slice(j);
-      count++;
-    }
+    const from = start! + totalInc,
+      to = from + inc!;
+    (secret += encryptedString.slice(from, to)),
+      (encryptedSource = encryptedSource.replace(
+        encryptedString.substring(from, to),
+        "",
+      )),
+      (totalInc += inc!);
   }
 
-  // extract variable names
-  const secretName =
-    Array.from(func.match(/(?<=let )\w{1,2}(?=='',\w{1,2}=)/gm) ?? [])[0] ?? "";
-  const encryptedName =
-    Array.from(func.match(/(?<=let \w{1,2}='',)\w{1,2}(?==)/gm) ?? [])[0] ?? "";
-
-  // replace the return values with the variables I need
-  func = func.replace(
-    /return \w{1,2}\(\w{1,2},\w{1,2}\);}$/gm,
-    `return { secret: ${secretName}, encryptedSource: ${encryptedName} };\n}`,
-  );
-
-  // build the new script that will be called with eval()
-  const getsecret = `function main() { ${vars}; return (${func.trim()})("${encryptedString}") }\nmain()`;
-
-  return getsecret;
+  return { secret, encryptedSource };
 }

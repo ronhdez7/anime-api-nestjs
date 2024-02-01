@@ -1,20 +1,12 @@
-/**
- * Not used, replaced by individual testing files for each provider
- *
- * Missing source error tests
- */
-
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import * as supertest from "supertest";
 import { AppModule } from "../src/app.module";
 import {
-  ANIME_PROVIDER,
   ANIME_PROVIDER_DETAILS,
   ANIME_SERVICE,
 } from "src/anime/anime.constants";
 import {
-  AnimeProvider,
   AnimeResult,
   EpisodeResult,
   ServerResult,
@@ -25,25 +17,15 @@ import {
   serverResultSchema,
   sourceResultSchema,
 } from "../src/anime/schemas/anime.schema";
-import { ApiResponse } from "src/interfaces/api.interface";
+import { TestResponse, TestSuccess } from "src/interfaces/test.interface";
 
-interface TestResponse<Body = any> extends supertest.Response {
-  body: ApiResponse<Body>;
+function testIf(condition: any) {
+  return condition ? test : test.skip;
 }
 
-interface TestSuccess<Body = any> extends supertest.Response {
-  body: { success: true; data: Body };
-}
-
-// interface TestError extends supertest.Response {
-//   body: { success: false; error: ApiExceptionResponse };
-// }
-
-function AppE2ETest(provider: AnimeProvider) {
-  const details = ANIME_PROVIDER_DETAILS[provider];
-  const animeService = details.service;
-
-  describe.skip(`${animeService.name} (e2e)`, () => {
+describe.each(Object.values(ANIME_PROVIDER_DETAILS))(
+  `$service.name (e2e)`,
+  (details) => {
     let app: INestApplication;
     let request: supertest.SuperTest<supertest.Test>;
 
@@ -55,13 +37,18 @@ function AppE2ETest(provider: AnimeProvider) {
         imports: [AppModule],
       })
         .overrideProvider(ANIME_SERVICE)
-        .useClass(animeService)
+        .useClass(details.service)
         .compile();
 
       app = moduleFixture.createNestApplication();
       await app.init();
 
       request = supertest(app.getHttpServer());
+    });
+
+    afterAll(async () => {
+      await app.close();
+      url = "/";
     });
 
     // Anime Scraping
@@ -97,13 +84,18 @@ function AppE2ETest(provider: AnimeProvider) {
         .end(done);
     });
 
-    test("GET /episodes 404", (done) => {
-      request.get(`/episodes?url=${url}.-12345`).expect(404).end(done);
+    testIf(details.type !== "GOGOANIME")("GET /episodes 404", (done) => {
+      let fakeId = "";
+      if (details.type === "9ANIME") {
+        fakeId = "-12345";
+      } else if (details.type === "ANICRUSH") {
+        fakeId = ".abcdef";
+      }
+
+      request.get(`/episodes?url=${url}${fakeId}`).expect(404).end(done);
     });
 
     test("GET /episodes 200", (done) => {
-      console.log("EPISODES URL:", url);
-
       request
         .get(`/episodes?url=${url}`)
         .expect(200)
@@ -118,7 +110,7 @@ function AppE2ETest(provider: AnimeProvider) {
     });
 
     // get servers
-    test("GET /servers 400", (done) => {
+    testIf(details.type !== "GOGOANIME")("GET /servers 400", (done) => {
       request.get(`/servers?url=${url}abcde`).expect(400).end(done);
     });
 
@@ -150,22 +142,5 @@ function AppE2ETest(provider: AnimeProvider) {
         )
         .end(done);
     });
-
-    afterAll(async () => {
-      await app.close();
-      url = "/";
-    });
-  });
-}
-
-// run all tests of providers
-const providers: AnimeProvider[] = Object.values(ANIME_PROVIDER);
-providers.forEach((provider) => {
-  if (provider === ANIME_PROVIDER.GOGOANIME) return;
-  AppE2ETest(provider);
-});
-
-// AppE2ETest(ANIME_PROVIDER.ANICRUSH);
-
-// so that jest doesn't complain for not having any tests
-describe.skip("Skip", () => {});
+  },
+);

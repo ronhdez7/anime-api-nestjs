@@ -36,3 +36,5 @@ lerna-debug.log*
 
 # other
 z.txt
+.env
+.env*.local

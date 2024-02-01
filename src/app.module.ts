@@ -13,6 +13,8 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerExceptionFilter } from "./errors/throttler-exception.filter";
 import { CacheModule } from "@nestjs/cache-manager";
 import { CacheControlInterceptor } from "./interceptors/cache-control.interceptor";
+import { ConfigModule } from "@nestjs/config";
+import { validate } from "./config/env.config";
 
 @Module({
   controllers: [AppController],
@@ -43,6 +45,11 @@ import { CacheControlInterceptor } from "./interceptors/cache-control.intercepto
     },
   ],
   imports: [
+    ConfigModule.forRoot({
+      validate,
+      cache: true,
+      isGlobal: true,
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60 * 1000,

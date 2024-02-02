@@ -15,6 +15,7 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { CacheControlInterceptor } from "./interceptors/cache-control.interceptor";
 import { ConfigModule } from "@nestjs/config";
 import { validate } from "./config/env.config";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
   controllers: [AppController],
@@ -59,6 +60,12 @@ import { validate } from "./config/env.config";
     CacheModule.register({
       ttl: 60 * 1000,
     }),
+
+    {
+      ...HttpModule.register({ timeout: 15 * 1000 }),
+      global: true,
+    },
+
     AnimeModule.register(NineAnimeService),
     NineAnimeModule,
     GogoanimeModule,

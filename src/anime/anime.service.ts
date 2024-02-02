@@ -4,7 +4,6 @@ import {
   AnimeFilterOptions,
   EpisodeResult,
   ServerResult,
-  SourceResult,
   AnimeProvider,
 } from "./interfaces/anime.interface";
 
@@ -43,10 +42,4 @@ export abstract class AnimeService {
    * @param episodeUrl The url of the episode
    */
   abstract getServers(episodeUrl: string): Promise<ServerResult[]>;
-
-  /**
-   * Gets the url to .m3u8 files needed to load the video
-   * @param playerUrl The url of the player provided by one of the servers
-   */
-  abstract getSources(playerUrl: string): Promise<SourceResult>;
 }

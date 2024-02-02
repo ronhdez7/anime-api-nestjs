@@ -29,9 +29,4 @@ export class BaseAnimeController {
   async getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
     return await this.animeService.getServers(url);
   }
-
-  @Get("sources")
-  async getSources(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.animeService.getSources(url);
-  }
 }

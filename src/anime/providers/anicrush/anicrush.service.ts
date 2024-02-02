@@ -6,7 +6,6 @@ import {
   EpisodeResult,
   ServerResult,
   AnimeProvider,
-  SourceResult,
 } from "src/anime/interfaces/anime.interface";
 import {
   AnicrushAnimeResult,
@@ -21,7 +20,6 @@ import {
   serverPageNotFoundError,
 } from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
-import { getVideoSource } from "../shared/get-video-source";
 import { ObjectKeys } from "src/interfaces/helpers.types";
 import { ApiException } from "src/errors/http.exception";
 
@@ -204,10 +202,6 @@ export class AnicrushService implements AnimeService {
     }
 
     return servers;
-  }
-
-  async getSources(playerUrl: string): Promise<SourceResult> {
-    return await getVideoSource(this.httpService, playerUrl);
   }
 
   private async getPlayer(sourceUrl: string): Promise<string> {

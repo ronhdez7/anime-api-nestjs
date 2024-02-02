@@ -7,7 +7,6 @@ import {
   ServerResult,
   AnimeProvider,
   AnimeFilmType,
-  SourceResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import {
@@ -20,7 +19,6 @@ import {
   serverPageNotFoundError,
 } from "src/anime/errors/not-found.error";
 import { HttpService } from "@nestjs/axios";
-import { getVideoSource } from "../shared/get-video-source";
 import { ApiException } from "src/errors/http.exception";
 
 @Injectable()
@@ -235,10 +233,6 @@ export class NineAnimeService implements AnimeService {
     }
 
     return servers;
-  }
-
-  async getSources(playerUrl: string): Promise<SourceResult> {
-    return await getVideoSource(this.httpService, playerUrl);
   }
 
   private async getPlayer(sourceUrl: string): Promise<string> {

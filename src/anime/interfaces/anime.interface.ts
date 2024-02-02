@@ -85,6 +85,9 @@ export interface SourceResult {
   outro: AnimeSectionTimestamps;
   server: number;
   playerUrl: string;
+  title?: string;
+  thumbnail?: string;
+  duration?: number;
 }
 
 export interface EncryptedSourceResult {

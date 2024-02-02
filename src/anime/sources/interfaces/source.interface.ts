@@ -1,1 +1,1 @@
-export type SourceName = "RAPIDCLOUD" | "SOUTHCLOUD" | "EMBTAKU";
+export type SourceName = "RAPIDCLOUD" | "SOUTHCLOUD" | "EMBTAKU" | "STREAMWISH";

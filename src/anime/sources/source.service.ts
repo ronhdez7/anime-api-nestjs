@@ -7,6 +7,7 @@ import { RapidCloudSourceGateway } from "./gateways/rapidcloud.gateway";
 import { SouthCloudSourceGateway } from "./gateways/southcloud.gateway";
 import { EmbtakuSourceGateway } from "./gateways/embtaku.gateway";
 import { ApiException } from "src/errors/http.exception";
+import { StreamwishSourceGateway } from "./gateways/streamwish.gateway";
 
 @Injectable()
 export class SourceService {
@@ -17,6 +18,7 @@ export class SourceService {
       RAPIDCLOUD: new RapidCloudSourceGateway(this.httpService),
       SOUTHCLOUD: new SouthCloudSourceGateway(this.httpService),
       EMBTAKU: new EmbtakuSourceGateway(this.httpService),
+      STREAMWISH: new StreamwishSourceGateway(this.httpService),
     };
   }
 
@@ -41,6 +43,8 @@ export class SourceService {
       sourceName = "SOUTHCLOUD";
     } else if (host === "embtaku.pro") {
       sourceName = "EMBTAKU";
+    } else if (host === "awish.pro" || host === "streamwish.com") {
+      sourceName = "STREAMWISH";
     } else {
       throw new ApiException("Url source is invalid or not implemented", 400);
     }

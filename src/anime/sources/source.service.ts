@@ -8,6 +8,7 @@ import { SouthCloudSourceGateway } from "./gateways/southcloud.gateway";
 import { EmbtakuSourceGateway } from "./gateways/embtaku.gateway";
 import { ApiException } from "src/errors/http.exception";
 import { StreamwishSourceGateway } from "./gateways/streamwish.gateway";
+import { MP4Upload } from "./gateways/mp4upload";
 
 @Injectable()
 export class SourceService {
@@ -19,6 +20,7 @@ export class SourceService {
       SOUTHCLOUD: new SouthCloudSourceGateway(this.httpService),
       EMBTAKU: new EmbtakuSourceGateway(this.httpService),
       STREAMWISH: new StreamwishSourceGateway(this.httpService),
+      MP4UPLOAD: new MP4Upload(this.httpService),
     };
   }
 
@@ -37,14 +39,16 @@ export class SourceService {
     const { host } = new URL(playerUrl);
 
     let sourceName: SourceName;
-    if (host === "rapid-cloud.co") {
+    if (host.includes("rapid-cloud")) {
       sourceName = "RAPIDCLOUD";
-    } else if (host === "southcloud.tv") {
+    } else if (host.includes("southcloud")) {
       sourceName = "SOUTHCLOUD";
-    } else if (host === "embtaku.pro") {
+    } else if (host.includes("embtaku")) {
       sourceName = "EMBTAKU";
-    } else if (host === "awish.pro" || host === "streamwish.com") {
+    } else if (host.includes("awish") || host.includes("streamwish")) {
       sourceName = "STREAMWISH";
+    } else if (host.includes("mp4upload")) {
+      sourceName = "MP4UPLOAD";
     } else {
       throw new ApiException("Url source is invalid or not implemented", 400);
     }

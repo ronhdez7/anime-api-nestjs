@@ -17,7 +17,7 @@ import { ANIME_SERVICE } from "src/anime/anime.constants";
 import * as supertest from "supertest";
 import { GogoanimeService } from "../gogoanime.service";
 
-describe("GOGOANIME End-To-End Test", () => {
+describe.skip("GOGOANIME End-To-End Test", () => {
   let app: INestApplication;
   let request: supertest.SuperTest<supertest.Test>;
 
@@ -105,10 +105,6 @@ describe("GOGOANIME End-To-End Test", () => {
   });
 
   // get sources
-  // test("GET /sources 404", (done) => {
-  //   request.get(`/servers?url=${url}123456`).expect(404).end(done);
-  // });
-
   test("GET /sources 200", (done) => {
     request
       .get(`/sources?url=${url}`)

@@ -18,10 +18,7 @@ import {
   sourceResultSchema,
 } from "../src/anime/schemas/anime.schema";
 import { TestResponse, TestSuccess } from "src/interfaces/test.interface";
-
-function testIf(condition: any) {
-  return condition ? test : test.skip;
-}
+import { testIf } from "src/test/utils";
 
 describe.each(Object.values(ANIME_PROVIDER_DETAILS))(
   `$type (e2e)`,

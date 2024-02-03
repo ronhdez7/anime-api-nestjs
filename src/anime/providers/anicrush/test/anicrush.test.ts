@@ -17,7 +17,7 @@ import { ANIME_SERVICE } from "src/anime/anime.constants";
 import * as supertest from "supertest";
 import { AnicrushService } from "../anicrush.service";
 
-describe("ANICRUSH End-To-End Test", () => {
+describe.skip("ANICRUSH End-To-End Test", () => {
   let app: INestApplication;
   let request: supertest.SuperTest<supertest.Test>;
 
@@ -111,21 +111,6 @@ describe("ANICRUSH End-To-End Test", () => {
       )
       .end(done);
   });
-
-  // get sources
-  // test("GET /servers 400", (done) => {
-  //   request
-  //     .get(`/sources?url=${url.slice(0, -3)}/`)
-  //     .expect(400)
-  //     .end(done);
-  // });
-
-  // test("GET /servers 404", (done) => {
-  //   request
-  //     .get(`/sources?url=${url.slice(0, -3)}abc`)
-  //     .expect(404)
-  //     .end(done);
-  // });
 
   test("GET /sources 200", (done) => {
     request

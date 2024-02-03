@@ -51,7 +51,7 @@ export class DoodstreamSourceGateway implements SourceServiceGateway {
     const finalUrl = `${sourceBaseUrl}abcdefghij${endUrl}${Date.now()}`;
 
     const $ = cheerio.load(playerHtml);
-    const thumbnail = $("#video_player").attr("poster");
+    const thumbnail = $("#video_player").attr("poster") ?? null;
 
     return {
       sources: [
@@ -63,11 +63,9 @@ export class DoodstreamSourceGateway implements SourceServiceGateway {
       tracks: [],
       intro: { start: 0, end: 0 },
       outro: { start: 0, end: 0 },
-      server: -1,
-      playerUrl,
+      playerUrls: [playerUrl],
       duration: -1,
       thumbnail,
-      title: undefined,
     };
   }
 }

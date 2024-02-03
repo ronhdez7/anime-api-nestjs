@@ -103,6 +103,7 @@ export const sourceResultSchema: z.ZodType<SourceResult> = z.object({
   tracks: z.array(sourceTrackSchema),
   intro: animeSectionTimestampsSchema,
   outro: animeSectionTimestampsSchema,
-  server: z.number(),
-  playerUrl: z.string(),
+  playerUrls: z.array(z.string()),
+  duration: z.number(),
+  thumbnail: z.string().nullable(),
 });

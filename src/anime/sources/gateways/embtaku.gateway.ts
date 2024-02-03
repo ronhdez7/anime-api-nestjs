@@ -75,8 +75,9 @@ export class EmbtakuSourceGateway implements SourceServiceGateway {
         tracks: source.track.tracks ?? [],
         intro: { start: 0, end: 0 },
         outro: { start: 0, end: 0 },
-        server: -1,
-        playerUrl: source.linkiframe ?? playerUrl,
+        playerUrls: [source.linkiframe, playerUrl].filter((u) => u),
+        duration: -1,
+        thumbnail: null,
       };
     } catch (err) {
       throw new ApiException("Internal server error", 500, {

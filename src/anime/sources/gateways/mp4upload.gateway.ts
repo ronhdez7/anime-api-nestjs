@@ -36,11 +36,9 @@ export class MP4UploadSourceGateway implements SourceServiceGateway {
       tracks: [],
       intro: { start: 0, end: 0 },
       outro: { start: 0, end: 0 },
-      server: -1,
-      playerUrl,
+      playerUrls: [playerUrl],
       duration: -1,
       thumbnail: imgsrc,
-      title: undefined,
     };
   }
 }

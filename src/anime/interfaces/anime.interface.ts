@@ -83,11 +83,9 @@ export interface SourceResult {
   tracks: SourceTrack[];
   intro: AnimeSectionTimestamps;
   outro: AnimeSectionTimestamps;
-  server: number;
-  playerUrl: string;
-  title?: string;
-  thumbnail?: string;
-  duration?: number;
+  playerUrls: string[];
+  duration: number;
+  thumbnail: string | null;
 }
 
 export interface EncryptedSourceResult {

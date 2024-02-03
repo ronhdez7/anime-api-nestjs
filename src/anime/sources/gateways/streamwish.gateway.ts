@@ -41,11 +41,9 @@ export class StreamwishSourceGateway implements SourceServiceGateway {
       tracks: setup.tracks,
       intro: { start: 0, end: 0 },
       outro: { start: 0, end: 0 },
-      server: -1,
-      playerUrl,
-      title: setup.title,
+      playerUrls: [playerUrl],
       thumbnail: setup.image,
-      duration: Number(setup.duration) ?? undefined,
+      duration: Number(setup.duration) ?? -1,
     };
   }
 }

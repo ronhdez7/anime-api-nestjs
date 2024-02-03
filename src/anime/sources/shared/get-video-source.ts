@@ -1,15 +1,21 @@
 import { HttpService } from "@nestjs/axios";
 import {
+  AnimeSectionTimestamps,
   EncryptedSourceResult,
   SourceResult,
+  SourceTrack,
 } from "src/anime/interfaces/anime.interface";
 import { ApiException } from "src/errors/http.exception";
 import { ObjectKeys } from "src/interfaces/helpers.types";
 import { decrypt } from "./cypher";
 
-interface SourceResponse extends Omit<SourceResult, "sources" | "playerUrl"> {
+interface SourceResponse {
   sources: string | EncryptedSourceResult[];
   encrypted: boolean;
+  tracks: SourceTrack[];
+  intro: AnimeSectionTimestamps;
+  outro: AnimeSectionTimestamps;
+  server: number;
 }
 
 const URLS = {
@@ -64,18 +70,19 @@ export async function getVideoSource(
   // if source is not encrypted, then I am done
   const encryptedString = sourceResponse.sources;
   if (Array.isArray(encryptedString)) {
-    const result = {
-      ...sourceResponse,
+    return {
       sources: encryptedString.map((s) => ({ url: s.file, type: s.type })),
-      encrypted: undefined,
-      playerUrl,
+      tracks: sourceResponse.tracks,
+      intro: sourceResponse.intro,
+      outro: sourceResponse.outro,
+      playerUrls: [playerUrl],
+      duration: -1,
+      thumbnail: null,
     };
-    return result;
   }
 
   // get script
   const scriptUrl = urls.GET_SCRIPT.concat(Date.now().toString());
-  console.log(scriptUrl);
   let text: string;
   try {
     text = (await httpService.axiosRef.get(scriptUrl)).data;
@@ -88,8 +95,6 @@ export async function getVideoSource(
 
   const vars = extractVariables(text, playerSource);
 
-  console.log(encryptedString, vars);
-
   try {
     const { secret, encryptedSource } = getSecret(encryptedString, vars);
 
@@ -98,13 +103,15 @@ export async function getVideoSource(
     const sources: EncryptedSourceResult[] = JSON.parse(decrypted);
 
     // return a formatted source
-    const result = {
-      ...sourceResponse,
+    return {
       sources: sources.map((s) => ({ url: s.file, type: s.type })),
-      encrypted: undefined,
-      playerUrl,
+      tracks: sourceResponse.tracks,
+      intro: sourceResponse.intro,
+      outro: sourceResponse.outro,
+      playerUrls: [playerUrl],
+      duration: -1,
+      thumbnail: null,
     };
-    return result;
   } catch (err) {
     console.log(err);
     throw new ApiException("Internal Server Error", 500, {

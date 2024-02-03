@@ -8,7 +8,8 @@ import { SouthCloudSourceGateway } from "./gateways/southcloud.gateway";
 import { EmbtakuSourceGateway } from "./gateways/embtaku.gateway";
 import { ApiException } from "src/errors/http.exception";
 import { StreamwishSourceGateway } from "./gateways/streamwish.gateway";
-import { MP4Upload } from "./gateways/mp4upload";
+import { MP4UploadSourceGateway } from "./gateways/mp4upload.gateway";
+import { DoodstreamSourceGateway } from "./gateways/doodstream.gateway";
 
 @Injectable()
 export class SourceService {
@@ -20,7 +21,8 @@ export class SourceService {
       SOUTHCLOUD: new SouthCloudSourceGateway(this.httpService),
       EMBTAKU: new EmbtakuSourceGateway(this.httpService),
       STREAMWISH: new StreamwishSourceGateway(this.httpService),
-      MP4UPLOAD: new MP4Upload(this.httpService),
+      MP4UPLOAD: new MP4UploadSourceGateway(this.httpService),
+      DOODSTREAM: new DoodstreamSourceGateway(this.httpService),
     };
   }
 
@@ -49,6 +51,8 @@ export class SourceService {
       sourceName = "STREAMWISH";
     } else if (host.includes("mp4upload")) {
       sourceName = "MP4UPLOAD";
+    } else if (host.includes("dood")) {
+      sourceName = "DOODSTREAM";
     } else {
       throw new ApiException("Url source is invalid or not implemented", 400);
     }

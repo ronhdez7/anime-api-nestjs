@@ -4,8 +4,8 @@ import { SourceServiceGateway } from "../source.gateway";
 import { HttpService } from "@nestjs/axios";
 import { ApiException } from "src/errors/http.exception";
 
-export class MP4Upload implements SourceServiceGateway {
-  SOURCE_NAME: SourceName = "RAPIDCLOUD";
+export class MP4UploadSourceGateway implements SourceServiceGateway {
+  SOURCE_NAME: SourceName = "MP4UPLOAD";
 
   constructor(private readonly httpService: HttpService) {}
 

@@ -62,7 +62,7 @@ import { HttpModule } from "@nestjs/axios";
     }),
 
     {
-      ...HttpModule.register({ timeout: 15 * 1000 }),
+      ...HttpModule.register({ timeout: 10 * 1000 }),
       global: true,
     },
 

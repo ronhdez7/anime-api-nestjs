@@ -11,6 +11,7 @@ import { StreamwishSourceGateway } from "./gateways/streamwish.gateway";
 import { MP4UploadSourceGateway } from "./gateways/mp4upload.gateway";
 import { DoodstreamSourceGateway } from "./gateways/doodstream.gateway";
 import { MegacloudSourceGateway } from "./gateways/megacloud.gateway";
+import { FilelionsSourceGateway } from "./gateways/filelions.gateway";
 
 @Injectable()
 export class SourceService {
@@ -25,6 +26,7 @@ export class SourceService {
       MP4UPLOAD: new MP4UploadSourceGateway(this.httpService),
       DOODSTREAM: new DoodstreamSourceGateway(this.httpService),
       MEGACLOUD: new MegacloudSourceGateway(this.httpService),
+      FILELIONS: new FilelionsSourceGateway(this.httpService),
     };
   }
 
@@ -57,6 +59,8 @@ export class SourceService {
       sourceName = "DOODSTREAM";
     } else if (host.includes("megacloud")) {
       sourceName = "MEGACLOUD";
+    } else if (host.includes("alions") || host.includes("filelions")) {
+      sourceName = "FILELIONS";
     } else {
       throw new ApiException("Url source is invalid or not implemented", 400);
     }

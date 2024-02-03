@@ -5,4 +5,5 @@ export type SourceName =
   | "STREAMWISH"
   | "MP4UPLOAD"
   | "DOODSTREAM"
-  | "MEGACLOUD";
+  | "MEGACLOUD"
+  | "FILELIONS";

@@ -21,6 +21,11 @@ const URLS = {
     GET_SCRIPT: "https://southcloud.tv/js/player/a/sc/prod/p1.min.js?v=",
     GET_SOURCES: "https://southcloud.tv/e/ajax/p-1/getSources?id=",
   },
+  MEGACLOUD: {
+    GET_SCRIPT:
+      "https://megacloud.tv/js/player/a/prod/e1-player.min.js?v=1706937092",
+    GET_SOURCES: "https://megacloud.tv/embed-2/ajax/e-1/getSources?id=",
+  },
 } as const;
 
 export async function getVideoSource(
@@ -37,10 +42,9 @@ export async function getVideoSource(
 
   // get correct urls based on player provider
   let playerSource: ObjectKeys<typeof URLS> = "RAPIDCLOUD";
-  if (playerUrl.startsWith("https://southcloud.tv"))
-    playerSource = "SOUTHCLOUD";
-  else if (playerUrl.startsWith("https://rapid-cloud.co"))
-    playerSource = "RAPIDCLOUD";
+  if (playerUrl.includes("southcloud")) playerSource = "SOUTHCLOUD";
+  else if (playerUrl.includes("rapid-cloud")) playerSource = "RAPIDCLOUD";
+  else if (playerUrl.includes("megacloud")) playerSource = "MEGACLOUD";
 
   const urls = URLS[playerSource];
 
@@ -71,6 +75,7 @@ export async function getVideoSource(
 
   // get script
   const scriptUrl = urls.GET_SCRIPT.concat(Date.now().toString());
+  console.log(scriptUrl);
   let text: string;
   try {
     text = (await httpService.axiosRef.get(scriptUrl)).data;
@@ -81,19 +86,9 @@ export async function getVideoSource(
     });
   }
 
-  // extract needed variables
-  const allvars =
-    Array.from(
-      text.match(
-        /(?<=const (?:\w{1,2}=(?:'.{0,50}?'|\w{1,2}\(.{0,20}?\)).{0,20}?,){7}).+?;/gm,
-      ) ?? [],
-    )?.at(-1) ?? "";
-  // and convert their values into an array of numbers
-  const vars = allvars
-    .slice(0, -1)
-    .split(",")
-    .map((v) => Number(v.split("=").at(-1)))
-    .filter((n) => n);
+  const vars = extractVariables(text, playerSource);
+
+  console.log(encryptedString, vars);
 
   try {
     const { secret, encryptedSource } = getSecret(encryptedString, vars);
@@ -117,6 +112,33 @@ export async function getVideoSource(
       description: "Failed to decrypt source",
     });
   }
+}
+
+function extractVariables(text: string, sourceName: ObjectKeys<typeof URLS>) {
+  // extract needed variables
+  let allvars: string;
+  if (sourceName !== "MEGACLOUD") {
+    allvars =
+      text
+        .match(
+          /const (?:\w{1,2}=(?:'.{0,50}?'|\w{1,2}\(.{0,20}?\)).{0,20}?,){7}.+?;/gm,
+        )
+        ?.at(-1) ?? "";
+  } else {
+    allvars =
+      text
+        .match(/const \w{1,2}=new URLSearchParams.+?;(?=function)/gm)
+        ?.at(-1) ?? "";
+  }
+  // and convert their values into an array of numbers
+  const vars = allvars
+    .slice(0, -1)
+    .split("=")
+    .slice(1)
+    .map((pair) => Number(pair.split(",").at(0)))
+    .filter((num) => num === 0 || num);
+
+  return vars;
 }
 
 // Copied from minified script of rapid-cloud.co

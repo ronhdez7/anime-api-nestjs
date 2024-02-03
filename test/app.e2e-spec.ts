@@ -24,7 +24,7 @@ function testIf(condition: any) {
 }
 
 describe.each(Object.values(ANIME_PROVIDER_DETAILS))(
-  `$service.name (e2e)`,
+  `$type (e2e)`,
   (details) => {
     let app: INestApplication;
     let request: supertest.SuperTest<supertest.Test>;
@@ -134,6 +134,7 @@ describe.each(Object.values(ANIME_PROVIDER_DETAILS))(
 
     // get sources
     test("GET /sources 200", (done) => {
+      console.log(details.type, url);
       request
         .get(`/sources?url=${url}`)
         .expect(200)

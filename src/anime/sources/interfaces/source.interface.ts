@@ -4,4 +4,5 @@ export type SourceName =
   | "EMBTAKU"
   | "STREAMWISH"
   | "MP4UPLOAD"
-  | "DOODSTREAM";
+  | "DOODSTREAM"
+  | "MEGACLOUD";

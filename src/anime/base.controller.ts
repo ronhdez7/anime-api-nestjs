@@ -22,11 +22,11 @@ export class BaseAnimeController {
 
   @Get("episodes")
   async getEpisodes(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.animeService.getEpisodes(url);
+    return await this.animeService.getEpisodes(decodeURIComponent(url));
   }
 
   @Get("servers")
   async getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.animeService.getServers(url);
+    return await this.animeService.getServers(decodeURIComponent(url));
   }
 }

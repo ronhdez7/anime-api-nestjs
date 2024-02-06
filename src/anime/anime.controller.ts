@@ -18,6 +18,6 @@ export class AnimeController extends BaseAnimeController {
 
   @Get("sources")
   async getSources(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.sourceService.getSources(url);
+    return await this.sourceService.getSources(decodeURIComponent(url));
   }
 }

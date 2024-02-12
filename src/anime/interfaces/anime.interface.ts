@@ -3,6 +3,11 @@ import { ANIME_PROVIDER } from "src/anime/anime.constants";
 import { AnimeService } from "../anime.service";
 import { ObjectValues } from "src/interfaces/helpers.types";
 
+export interface GenreResult {
+  url: string;
+  title: string;
+}
+
 export type AnimeProvider = ObjectValues<typeof ANIME_PROVIDER>;
 export type AnimeFilmType =
   | "MOVIE"

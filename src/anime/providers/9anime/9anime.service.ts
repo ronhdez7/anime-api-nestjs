@@ -7,6 +7,7 @@ import {
   ServerResult,
   AnimeProvider,
   AnimeFilmType,
+  GenreResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import {
@@ -27,6 +28,29 @@ export class NineAnimeService implements AnimeService {
   readonly NINEANIME_URL = "https://9animetv.to";
 
   constructor(private readonly httpService: HttpService) {}
+
+  async getGenres(): Promise<GenreResult[]> {
+    let html: string;
+    try {
+      html = (await this.httpService.axiosRef.get(`${this.NINEANIME_URL}/home`))
+        .data;
+    } catch (err) {
+      throw animePageNotFoundError(err);
+    }
+    const $ = cheerio.load(html);
+
+    const genres: GenreResult[] = [];
+    $(`a[title="Genres"] + div > ul > li > a`).each((_, a) => {
+      const title = $(a).text().trim();
+      let url = $(a).attr("href")?.trim();
+      if (!url) return;
+
+      const genre: GenreResult = { url, title };
+      genres.push(genre);
+    });
+
+    return genres;
+  }
 
   async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home");

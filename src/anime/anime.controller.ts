@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Query } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
-import { ANIME_SERVICE } from "./anime.constants";
+import { ANIME_SERVICE, genres } from "./anime.constants";
 import { BaseAnimeController } from "./base.controller";
 import { SourceService } from "./sources/source.service";
 import { ZodPipe } from "src/pipes/zod.pipe";
@@ -19,5 +19,10 @@ export class AnimeController extends BaseAnimeController {
   @Get("sources")
   async getSources(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
     return await this.sourceService.getSources(decodeURIComponent(url));
+  }
+
+  @Get("all/genres")
+  async getCommonGenres() {
+    return genres;
   }
 }

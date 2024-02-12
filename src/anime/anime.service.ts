@@ -5,11 +5,19 @@ import {
   EpisodeResult,
   ServerResult,
   AnimeProvider,
+  GenreResult,
 } from "./interfaces/anime.interface";
 
 @Injectable()
 export abstract class AnimeService {
   abstract readonly PROVIDER: AnimeProvider;
+
+  /**
+   * Gets genres from each provider
+   * Use '/all/genres' for genres usable with any provider
+   * @returns A list of objects with url and title of the genre
+   */
+  abstract getGenres(): Promise<GenreResult[]>;
 
   /**
    * Gets some anime recommendations

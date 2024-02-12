@@ -9,6 +9,11 @@ import { ZodPipe } from "../pipes/zod.pipe";
 export class BaseAnimeController {
   constructor(protected readonly animeService: AnimeService) {}
 
+  @Get("genres")
+  async getGenres() {
+    return await this.animeService.getGenres();
+  }
+
   @Get()
   async getAnime() {
     return await this.animeService.getAnime();

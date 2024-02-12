@@ -6,11 +6,13 @@ import {
   EpisodeResult,
   ServerResult,
   AnimeProvider,
+  GenreResult,
 } from "src/anime/interfaces/anime.interface";
 import {
   AnicrushAnimeResult,
   AnicrushApiResponse,
   AnicrushEpisodeGuide,
+  AnicrushGenreResult,
   AnicrushServerGuide,
   AnicrushSourceResult,
 } from "./interfaces/anicrush.interface";
@@ -34,6 +36,28 @@ export class AnicrushService implements AnimeService {
   private readonly DEFAULT_HEADERS = { "x-site": "anicrush" };
 
   constructor(private readonly httpService: HttpService) {}
+
+  async getGenres(): Promise<GenreResult[]> {
+    let data: AnicrushApiResponse<AnicrushGenreResult[]>;
+    try {
+      data = (
+        await this.httpService.axiosRef.get(
+          `${this.ANICRUSH_API_URL}/shared/v1/genre/all`,
+          {
+            headers: { ...this.DEFAULT_HEADERS },
+          },
+        )
+      ).data;
+      if (!data || !data.status) throw new Error("Not found");
+    } catch (err) {
+      throw animePageNotFoundError(err);
+    }
+
+    return data.result.map((genre) => ({
+      title: genre.name,
+      url: `/genre/${genre.slug}`,
+    }));
+  }
 
   async getAnime(): Promise<AnimeResult[]> {
     const trendingUrl = `${this.ANICRUSH_API_URL}/shared/v2/movie/trending`;

@@ -6,6 +6,7 @@ import {
   EpisodeResult,
   ServerResult,
   AnimeProvider,
+  GenreResult,
 } from "src/anime/interfaces/anime.interface";
 import * as cheerio from "cheerio";
 import { HttpService } from "@nestjs/axios";
@@ -24,6 +25,30 @@ export class GogoanimeService implements AnimeService {
     "https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
   constructor(private readonly httpService: HttpService) {}
+
+  async getGenres(): Promise<GenreResult[]> {
+    let html: string;
+    try {
+      html = (
+        await this.httpService.axiosRef.get(`${this.GOGOANIME_URL}/home.html`)
+      ).data;
+    } catch (err) {
+      throw animePageNotFoundError(err);
+    }
+    const $ = cheerio.load(html);
+
+    const genres: GenreResult[] = [];
+    $("li.movie.genre > ul > li > a").each((_, a) => {
+      const title = $(a).text().trim();
+      let url = $(a).attr("href")?.trim();
+      if (!url) return;
+
+      const genre: GenreResult = { url, title };
+      genres.push(genre);
+    });
+
+    return genres;
+  }
 
   async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home.html");

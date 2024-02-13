@@ -82,8 +82,14 @@ export class AnicrushService implements AnimeService {
     }
     if (!data.status) throw animePageNotFoundError(data);
 
-    const items: AnicrushAnimeResult[] =
-      "movies" in data.result ? (data.result.movies as any) : data.result;
+    let items: AnicrushAnimeResult[];
+    if ("movies" in data.result) {
+      items = data.result.movies as any;
+    } else if ("data" in data.result) {
+      items = (data.result.data as any).movies;
+    } else {
+      items = data.result;
+    }
     const animes: AnimeResult[] = [];
 
     for (const anime of items) {

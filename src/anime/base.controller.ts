@@ -19,6 +19,11 @@ export class BaseAnimeController {
     return await this.animeService.getAnime();
   }
 
+  @Get("scrape")
+  async scrapeAnime(@Query("url") url: string) {
+    return await this.animeService.scrapeAnime(url);
+  }
+
   @Get("filter")
   async filterAnime(@Query() query: Record<string, string>) {
     const stringQuery = new URLSearchParams(query).toString();

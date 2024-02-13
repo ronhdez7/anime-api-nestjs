@@ -58,6 +58,15 @@ export class GogoanimeService implements AnimeService {
     if (url.startsWith("/")) {
       url = this.GOGOANIME_URL + url;
     }
+    const { pathname } = new URL(url);
+    if (
+      !pathname.startsWith("/genre/") &&
+      !pathname.endsWith("/") &&
+      !pathname.endsWith(".html")
+    ) {
+      const end = url.search(/$|\?/);
+      url = url.slice(0, end) + ".html" + url.slice(end);
+    }
 
     let html: string;
     try {

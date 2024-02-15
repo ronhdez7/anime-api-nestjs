@@ -16,6 +16,7 @@ import { CacheControlInterceptor } from "./interceptors/cache-control.intercepto
 import { ConfigModule } from "@nestjs/config";
 import { validate } from "./config/env.config";
 import { HttpModule } from "@nestjs/axios";
+import { HttpExceptionFilter } from "./errors/http-exception.filter";
 
 @Module({
   controllers: [AppController],
@@ -27,6 +28,10 @@ import { HttpModule } from "@nestjs/axios";
     {
       provide: APP_FILTER,
       useClass: ThrottlerExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
     {
       provide: APP_FILTER,

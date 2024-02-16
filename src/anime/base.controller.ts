@@ -1,4 +1,4 @@
-import { Get, Query } from "@nestjs/common";
+import { Get, Param, Query } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
 import { urlQueryParam } from "./validation/url-query.param";
 import { ZodPipe } from "../pipes/zod.pipe";
@@ -12,6 +12,17 @@ export class BaseAnimeController {
   @Get("genres")
   async getGenres() {
     return await this.animeService.getGenres();
+  }
+
+  @Get("genre/:genre")
+  async getAnimeByGenre(@Param("genre") genre: string) {
+    try {
+      genre = decodeURIComponent(genre);
+    } catch {}
+
+    genre = genre = genre.trim().split(" ").join("-");
+
+    return await this.animeService.getAnimeByGenre(genre);
   }
 
   @Get()

@@ -52,6 +52,10 @@ export class NineAnimeService implements AnimeService {
     return genres;
   }
 
+  async getAnimeByGenre(genre: string): Promise<AnimeResult[]> {
+    return await this.scrapeAnime(`${this.NINEANIME_URL}/genre/${genre}`);
+  }
+
   async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home");
   }

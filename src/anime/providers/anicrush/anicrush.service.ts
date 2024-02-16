@@ -59,6 +59,12 @@ export class AnicrushService implements AnimeService {
     }));
   }
 
+  async getAnimeByGenre(genre: string): Promise<AnimeResult[]> {
+    return await this.scrapeAnime(
+      `${this.ANICRUSH_API_URL}/shared/v1/genre/detail/${genre}`,
+    );
+  }
+
   async getAnime(): Promise<AnimeResult[]> {
     const trendingUrl = `${this.ANICRUSH_API_URL}/shared/v2/movie/trending`;
 

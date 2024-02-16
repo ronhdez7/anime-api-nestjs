@@ -77,4 +77,4 @@ export const genres = [
   { url: "/genre/supernatural", title: "Supernatural" },
   { url: "/genre/thriller", title: "Thriller" },
   { url: "/genre/vampire", title: "Vampire" },
-];
+] as const;

@@ -50,6 +50,10 @@ export class GogoanimeService implements AnimeService {
     return genres;
   }
 
+  async getAnimeByGenre(genre: string): Promise<AnimeResult[]> {
+    return await this.scrapeAnime(`${this.GOGOANIME_URL}/genre/${genre}`);
+  }
+
   async getAnime(): Promise<AnimeResult[]> {
     return await this.scrapeAnime("/home.html");
   }

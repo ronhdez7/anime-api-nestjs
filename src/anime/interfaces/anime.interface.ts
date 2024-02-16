@@ -1,5 +1,5 @@
 import { Type } from "@nestjs/common";
-import { ANIME_PROVIDER } from "src/anime/anime.constants";
+import { ANIME_PROVIDER, genres } from "src/anime/anime.constants";
 import { AnimeService } from "../anime.service";
 import { ObjectValues } from "src/interfaces/helpers.types";
 
@@ -7,6 +7,7 @@ export interface GenreResult {
   url: string;
   title: string;
 }
+export type Genre = Uppercase<(typeof genres)[number]["title"]>;
 
 export type AnimeProvider = ObjectValues<typeof ANIME_PROVIDER>;
 export type AnimeFilmType =

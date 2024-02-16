@@ -6,6 +6,7 @@ import {
   ServerResult,
   AnimeProvider,
   GenreResult,
+  Genre,
 } from "./interfaces/anime.interface";
 
 @Injectable()
@@ -18,6 +19,9 @@ export abstract class AnimeService {
    * @returns A list of objects with url and title of the genre
    */
   abstract getGenres(): Promise<GenreResult[]>;
+
+  abstract getAnimeByGenre(genre: Genre): Promise<AnimeResult[]>;
+  abstract getAnimeByGenre(genre: string): Promise<AnimeResult[]>;
 
   /**
    * Gets some anime recommendations

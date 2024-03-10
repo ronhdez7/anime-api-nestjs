@@ -216,26 +216,30 @@ export class AnicrushService implements AnimeService {
     }
     if (!data.status) throw serverPageNotFoundError();
 
-    const servers: ServerResult[] = [];
     const keys = Object.keys(data.result) as ObjectKeys<typeof data.result>[];
-    for (const audioType of keys) {
-      for (const server of data.result[audioType]) {
-        const url = `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${server.server}&sc=${audioType}`;
+    const servers: ServerResult[] = (
+      await Promise.all(
+        keys.flatMap((audioType) => {
+          if (!data.status) return;
+          return data.result[audioType].map(async (server) => {
+            const url = `${this.ANICRUSH_API_URL}/shared/v2/episode/sources?_movieId=${animeId}&ep=${episodeNumber}&sv=${server.server}&sc=${audioType}`;
 
-        const card: ServerResult = {
-          provider: this.PROVIDER,
-          serverNumber: server.server,
-          name: server.streamServer.name,
-          url,
-          audioType,
-          playerUrl: await this.getPlayer(url),
-        };
+            const card: ServerResult = {
+              provider: this.PROVIDER,
+              serverNumber: server.server,
+              name: server.streamServer.name,
+              url,
+              audioType,
+              playerUrl: await this.getPlayer(url),
+            };
 
-        if (!card.playerUrl) continue;
+            if (!card.playerUrl) return;
 
-        servers.push(card);
-      }
-    }
+            return card;
+          });
+        }),
+      )
+    ).filter((s) => s) as any;
 
     return servers;
   }

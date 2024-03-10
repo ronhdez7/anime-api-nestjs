@@ -28,8 +28,7 @@ const URLS = {
     GET_SOURCES: "https://southcloud.tv/e/ajax/p-1/getSources?id=",
   },
   MEGACLOUD: {
-    GET_SCRIPT:
-      "https://megacloud.tv/js/player/a/prod/e1-player.min.js?v=1706937092",
+    GET_SCRIPT: "https://megacloud.tv/js/player/a/prod/e1-player.min.js?v=",
     GET_SOURCES: "https://megacloud.tv/embed-2/ajax/e-1/getSources?id=",
   },
 } as const;

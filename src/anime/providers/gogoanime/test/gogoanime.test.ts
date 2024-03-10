@@ -72,6 +72,7 @@ describe.skip("GOGOANIME End-To-End Test", () => {
   });
 
   test("GET /episodes 200", (done) => {
+    console.log(url);
     request
       .get(`/episodes?url=${url}`)
       .expect(200)

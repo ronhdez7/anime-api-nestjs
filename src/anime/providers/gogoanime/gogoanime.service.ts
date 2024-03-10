@@ -22,7 +22,7 @@ export class GogoanimeService implements AnimeService {
   readonly PROVIDER: AnimeProvider = "GOGOANIME";
   readonly GOGOANIME_URL = "https://anitaku.to";
   readonly GOGOANIME_EPISODES_URL =
-    "https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
+    "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
   constructor(private readonly httpService: HttpService) {}
 

@@ -4,7 +4,7 @@
   "description": "API for making it simple to stream anime from popular anime websites",
   "author": "ronhdez7",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

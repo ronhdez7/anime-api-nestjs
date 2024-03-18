@@ -1,73 +1,44 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Anime Stream Api
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+An API built with NestJS designed towards scraping anime streams. Its scrapes data from anime providers by using an unique interface. This API can scrape some anime information, but it is mainly dedicated to extracting video sources.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Running the App
 
-## Description
+Rename file `.env.example` to `.env` and change `PORT` to whatever port you want to use.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Then run
 
-## Installation
-
-```bash
-$ pnpm install
+```
+pnpm install
+pnpm start:dev
 ```
 
-## Running the app
+## Usage
 
-```bash
-# development
-$ pnpm run start
+The API supports the following providers:
 
-# watch mode
-$ pnpm run start:dev
+- 9Anime
+- Gogoanime
+- Anicrush
+- ...and more to come
 
-# production mode
-$ pnpm run start:prod
-```
+To use a specific provider, go to their routes, e.g `/9anime`
 
-## Test
+If the provider is not specified in the route, the API will redirect the request to the matching provider, based on the `url` query param.
 
-```bash
-# unit tests
-$ pnpm run test
+For example, going to `/` or `/filter` is the same as going to `/9anime` or `/9anime/filter`, respectively.
 
-# e2e tests
-$ pnpm run test:e2e
+But if the url is `/episodes?url=https%3A%2F%2Fanitaku.to%2Fone-piece-episode-1`, then the route will be prefixed with `/gogoanime` and redirected.
 
-# test coverage
-$ pnpm run test:cov
-```
+### Routes
 
-## Support
+The following routes can be prefixed with `/${providerName}` to specify the provider used, otherwise the rules listed above will apply.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- `/` - Gets anime from homepage
+- `/genres` - Gets all genres listed by the provider
+- `/genres/:genre` - Gets anime by specified genre
+- `/scrape?url=<url>` - Scrapes anime from url specified
+- `/episodes?url=<animeUrl>` - Scrapes episodes from specified anime url
+- `/servers?url=<episodeUrl>` - Scrapes servers available to watch an episode
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+To extract the sources from the player urls returned by `/servers`, pass the player url to `/sources?url=${playerUrl}` without any prefixes.

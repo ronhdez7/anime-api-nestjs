@@ -2,52 +2,53 @@ import { Get, Param, Query } from "@nestjs/common";
 import { AnimeService } from "./anime.service";
 import { urlQueryParam } from "./validation/url-query.param";
 import { ZodPipe } from "../pipes/zod.pipe";
+import { RouterService } from "./router/router.service";
 
 /**
  * Controller that all anime controllers extend
  */
 export class BaseAnimeController {
-  constructor(protected readonly animeService: AnimeService) {}
+  constructor(protected readonly animeService: AnimeService | RouterService) {}
 
   @Get("genres")
-  async getGenres() {
-    return await this.animeService.getGenres();
+  getGenres() {
+    return this.animeService.getGenres();
   }
 
-  @Get("genre/:genre")
-  async getAnimeByGenre(@Param("genre") genre: string) {
+  @Get("genres/:genre")
+  getAnimeByGenre(@Param("genre") genre: string) {
     try {
       genre = decodeURIComponent(genre);
     } catch {}
 
     genre = genre = genre.trim().split(" ").join("-");
 
-    return await this.animeService.getAnimeByGenre(genre);
+    return this.animeService.getAnimeByGenre(genre);
   }
 
   @Get()
-  async getAnime() {
-    return await this.animeService.getAnime();
+  getAnime() {
+    return this.animeService.getAnime();
   }
 
   @Get("scrape")
-  async scrapeAnime(@Query("url") url: string) {
-    return await this.animeService.scrapeAnime(url);
+  scrapeAnime(@Query("url") url: string) {
+    return this.animeService.scrapeAnime(url);
   }
 
   @Get("filter")
-  async filterAnime(@Query() query: Record<string, string>) {
+  filterAnime(@Query() query: Record<string, string>) {
     const stringQuery = new URLSearchParams(query).toString();
-    return await this.animeService.filterAnime(stringQuery);
+    return this.animeService.filterAnime(stringQuery);
   }
 
   @Get("episodes")
-  async getEpisodes(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.animeService.getEpisodes(decodeURIComponent(url));
+  getEpisodes(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
+    return this.animeService.getEpisodes(decodeURIComponent(url));
   }
 
   @Get("servers")
-  async getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
-    return await this.animeService.getServers(decodeURIComponent(url));
+  getServers(@Query("url", new ZodPipe(urlQueryParam)) url: string) {
+    return this.animeService.getServers(decodeURIComponent(url));
   }
 }

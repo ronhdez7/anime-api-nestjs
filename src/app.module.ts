@@ -71,7 +71,7 @@ import { HttpExceptionFilter } from "./errors/http-exception.filter";
       global: true,
     },
 
-    AnimeModule.register(NineAnimeService),
+    AnimeModule,
     NineAnimeModule,
     GogoanimeModule,
     AnicrushModule,

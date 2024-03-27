@@ -7,6 +7,9 @@ import {
 import { ApiException } from "src/errors/http.exception";
 import { ZodError, ZodType, z } from "zod";
 
+/**
+ * Zod pipe to validate zod schemas
+ */
 @Injectable()
 export class ZodPipe<T extends ZodType, R = z.infer<T>>
   implements PipeTransform<T, R>

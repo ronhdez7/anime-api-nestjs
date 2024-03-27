@@ -20,6 +20,10 @@ export abstract class AnimeService {
    */
   abstract getGenres(): Promise<GenreResult[]>;
 
+  /**
+   * Gets animes from specified genre
+   * @param genre Genre to filter anime by
+   */
   abstract getAnimeByGenre(genre: Genre): Promise<AnimeResult[]>;
   abstract getAnimeByGenre(genre: string): Promise<AnimeResult[]>;
 

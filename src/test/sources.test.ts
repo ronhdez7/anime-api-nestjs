@@ -6,6 +6,9 @@ import { AppModule } from "src/app.module";
 import { TestResponse } from "src/interfaces/test.interface";
 import * as supertest from "supertest";
 
+/*
+ * Sources to test
+ */
 const SOURCES: Record<SourceName, string[]> = {
   // dont have fixed urls; tested during e2e tests
   RAPIDCLOUD: [],
@@ -13,7 +16,7 @@ const SOURCES: Record<SourceName, string[]> = {
   MEGACLOUD: [],
   EMBTAKU: [
     "https://embtaku.pro/streaming.php?id=MjE5ODc1&title=Happy+ComeCome+Episode+1",
-    "https://embtaku.pro/streaming.php?id=MjE5NzEy&title=Kyuujitsu+no+Warumono-san+Episode+4",
+    "https://embtaku.pro/streaming.php?id=MjE5NzEy&title=Kyuujitsu+no+Warumkkkono-san+Episode+4",
   ],
   STREAMWISH: [
     "https://awish.pro/e/pdgtdvh9z1br",
@@ -34,9 +37,6 @@ describe("Sources Test", () => {
   let app: INestApplication;
   let request: supertest.SuperTest<supertest.Test>;
 
-  // updated during tests
-  let url: string = "/";
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -50,12 +50,13 @@ describe("Sources Test", () => {
 
   afterAll(async () => {
     await app.close();
-    url = "/";
   });
 
+  /*
+   * Test all sources
+   */
   test.each(Object.keys(SOURCES))("%s", async (name: SourceName) => {
     const urls = SOURCES[name];
-    // expect.assertions(urls.length);
 
     for (const url of urls) {
       await request

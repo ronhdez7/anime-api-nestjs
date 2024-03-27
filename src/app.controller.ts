@@ -1,6 +1,9 @@
 import { Controller, Get, HttpStatus } from "@nestjs/common";
 import { ApiException } from "./errors/http.exception";
 
+/**
+ * Main App Controller
+ */
 @Controller()
 export class AppController {
   @Get("error")

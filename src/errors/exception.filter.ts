@@ -4,6 +4,7 @@ import { ApiException } from "src/errors/http.exception";
 import { createErrorResponseBody } from "./utils/create-error";
 import { formatErrorCause } from "./utils/error-cause";
 
+/** Catches errors thrown on purpose */
 @Catch(ApiException)
 export class ApiExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}

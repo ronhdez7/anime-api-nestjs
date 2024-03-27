@@ -1,6 +1,7 @@
 import { HttpException } from "@nestjs/common";
 import { ApiExceptionInfo } from "./interfaces/errors.interface";
 
+/** Handles any errors that need to be thrown */
 export class ApiException extends HttpException {
   constructor(
     message: ApiExceptionInfo["message"],
@@ -22,8 +23,3 @@ export class ApiException extends HttpException {
     return super.getResponse() as ApiExceptionInfo;
   }
 }
-
-// throw new HttpError("Please provide correct url", HttpStatus.BAD_REQUEST, {
-//   cause: Error,
-//   description: "Invalid url",
-// });

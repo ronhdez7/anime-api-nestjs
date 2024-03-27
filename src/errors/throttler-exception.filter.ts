@@ -4,6 +4,7 @@ import { ThrottlerException } from "@nestjs/throttler";
 import { createErrorResponseBody } from "./utils/create-error";
 import { formatErrorCause } from "./utils/error-cause";
 
+/** Catches errors thrown by rate limiter */
 @Catch(ThrottlerException)
 export class ThrottlerExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}

@@ -8,6 +8,7 @@ import { HttpAdapterHost } from "@nestjs/core";
 import { createErrorResponseBody } from "./utils/create-error";
 import { formatErrorCause } from "./utils/error-cause";
 
+/** Catch any http errors thrown by NestJS */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}

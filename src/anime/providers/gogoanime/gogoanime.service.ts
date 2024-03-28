@@ -208,20 +208,24 @@ export class GogoanimeService implements AnimeService {
 
     const $ = cheerio.load(html);
 
+    // prettier-ignore
+    const defaultAudioType = $("input#alias_anime.alias_anime")
+        .val()?.toString().slice(-3).toLowerCase() === "dub" ? "dub" : "sub"
+
     const servers: ServerResult[] = [];
-    $("div.anime_muti_link > ul > li").each((_, el) => {
+    $("div.anime_muti_link > ul > li > a").each((_, el) => {
       const name =
         $(el).text().split("Choose this server")?.at(0)?.trim() ?? "";
 
-      const serverNumber = Number($(el).find("a").attr("rel")) ?? -1;
+      const serverNumber = Number($(el).attr("rel")) ?? -1;
 
-      let url = ($(el).find("a").data("video") as string) || null;
+      let url = ($(el).data("video") as string) || null;
       if (!url) return;
       if (url.startsWith("/")) {
         url = this.GOGOANIME_URL + url;
       }
 
-      const audioType = ($(el).data("type") as string) ?? "sub";
+      const audioType = defaultAudioType;
 
       const card: ServerResult = {
         provider: this.PROVIDER,
